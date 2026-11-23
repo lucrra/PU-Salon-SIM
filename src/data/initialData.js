@@ -944,3 +944,27 @@ export const INITIAL_STOCK_ADJUSTMENTS = [
     approvedBy: "Owner"
   }
 ];
+
+export const INITIAL_PURCHASE_RETURNS = [
+  {
+    id: "rtn-1",
+    number: "RTN-202611-001",
+    date: "2026-11-20",
+    poNumber: "PO-202611-001",
+    supplierId: "sup-2",
+    supplierName: "CV Barbershop Supply Jaya",
+    warehouseId: "wh-main",
+    productId: "prd-9",
+    productName: "Kertas Leher Barbershop (Neck Paper Roll)",
+    qty: 2,
+    unit: "roll",
+    unitPrice: 12000,
+    totalRefund: 24000,
+    reason: "Kemasan sobek dan lembap saat pengiriman",
+    status: "approved",
+    resolution: "Tukar Barang Baru",
+    submittedBy: "Budi Santoso",
+    notes: "Sudah dikonfirmasi dengan PIC supplier via WhatsApp."
+  }
+];
+

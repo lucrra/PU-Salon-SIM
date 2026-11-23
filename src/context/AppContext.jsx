@@ -17,7 +17,8 @@ import {
   INITIAL_REQUISITIONS,
   INITIAL_GOODS_RECEIPTS,
   INITIAL_STOCK_TRANSFERS,
-  INITIAL_STOCK_ADJUSTMENTS
+  INITIAL_STOCK_ADJUSTMENTS,
+  INITIAL_PURCHASE_RETURNS
 } from '../data/initialData';
 
 const AppContext = createContext();
@@ -53,6 +54,7 @@ export const AppProvider = ({ children }) => {
   const [goodsReceipts, setGoodsReceipts] = useState(() => loadState('goodsReceipts', INITIAL_GOODS_RECEIPTS));
   const [stockTransfers, setStockTransfers] = useState(() => loadState('stockTransfers', INITIAL_STOCK_TRANSFERS));
   const [stockAdjustments, setStockAdjustments] = useState(() => loadState('stockAdjustments', INITIAL_STOCK_ADJUSTMENTS));
+  const [purchaseReturns, setPurchaseReturns] = useState(() => loadState('purchaseReturns', INITIAL_PURCHASE_RETURNS));
 
   // Current User Role: 'owner' | 'admin' | 'staff'
   const [userRole, setUserRole] = useState(() => loadState('role', 'owner'));
@@ -95,6 +97,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('pu_salon_goodsReceipts', JSON.stringify(goodsReceipts)); }, [goodsReceipts]);
   useEffect(() => { localStorage.setItem('pu_salon_stockTransfers', JSON.stringify(stockTransfers)); }, [stockTransfers]);
   useEffect(() => { localStorage.setItem('pu_salon_stockAdjustments', JSON.stringify(stockAdjustments)); }, [stockAdjustments]);
+  useEffect(() => { localStorage.setItem('pu_salon_purchaseReturns', JSON.stringify(purchaseReturns)); }, [purchaseReturns]);
   useEffect(() => { localStorage.setItem('pu_salon_role', JSON.stringify(userRole)); }, [userRole]);
   useEffect(() => { localStorage.setItem('pu_salon_activeStaffId', JSON.stringify(activeStaffId)); }, [activeStaffId]);
 
@@ -117,6 +120,7 @@ export const AppProvider = ({ children }) => {
     setGoodsReceipts(INITIAL_GOODS_RECEIPTS);
     setStockTransfers(INITIAL_STOCK_TRANSFERS);
     setStockAdjustments(INITIAL_STOCK_ADJUSTMENTS);
+    setPurchaseReturns(INITIAL_PURCHASE_RETURNS);
     showToast('info', 'Data Direset', 'Semua data contoh PU Salon & Barbershop telah dikembalikan ke awal.');
   };
 
@@ -592,6 +596,12 @@ export const AppProvider = ({ children }) => {
     showToast('info', 'Data Pemasok Diperbarui', 'Perubahan data pemasok berhasil disimpan.');
   };
 
+  const deleteSupplier = (id) => {
+    const sup = suppliers.find(s => s.id === id);
+    setSuppliers(prev => prev.filter(s => s.id !== id));
+    showToast('info', 'Pemasok Dihapus', `${sup ? sup.name : 'Pemasok'} berhasil dihapus dari direktori.`);
+  };
+
   // 5c. SCM — Pengadaan (Purchase Requisition → Purchase Order)
   const createRequisition = (data) => {
     const now = new Date();
@@ -811,6 +821,108 @@ export const AppProvider = ({ children }) => {
     return { success: true, difference };
   };
 
+  const addWarehouse = (data) => {
+    const newWh = {
+      ...data,
+      id: `wh-${Date.now()}`,
+      code: data.code || `GD-${String(warehouses.length + 1).padStart(3, '0')}`,
+      capacity: Number(data.capacity) || 100,
+      status: 'active'
+    };
+    setWarehouses(prev => [...prev, newWh]);
+    showToast('success', 'Gudang Ditambahkan', `Gudang "${newWh.name}" (${newWh.code}) berhasil didaftarkan.`);
+    return newWh;
+  };
+
+  const createPurchaseReturn = ({
+    supplierId,
+    warehouseId,
+    productId,
+    qty,
+    reason,
+    poNumber,
+    resolution,
+    submittedBy,
+    notes
+  }) => {
+    const product = products.find(p => p.id === productId);
+    const supplier = suppliers.find(s => s.id === supplierId);
+    const wh = warehouses.find(w => w.id === warehouseId);
+    const returnQty = Math.max(1, Number(qty) || 1);
+    const unitPrice = product ? product.buyPrice : 0;
+    const totalRefund = returnQty * unitPrice;
+    const today = new Date().toISOString().slice(0, 10);
+    const number = `RTN-${today.replace(/-/g, '').slice(0, 6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const currentWhStock = warehouseStock.find(r => r.warehouseId === warehouseId && r.productId === productId)?.qty || 0;
+    if (currentWhStock < returnQty) {
+      showToast('error', 'Stok Tidak Cukup', `Stok ${product?.name || 'produk'} di ${wh?.name || 'gudang'} hanya ${currentWhStock} unit.`);
+      return { success: false, message: 'Stok tidak cukup' };
+    }
+
+    setWarehouseStock(prev => prev.map(r => {
+      if (r.warehouseId === warehouseId && r.productId === productId) {
+        return { ...r, qty: Math.max(0, r.qty - returnQty) };
+      }
+      return r;
+    }));
+
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        return { ...p, currentStock: Math.max(0, p.currentStock - returnQty) };
+      }
+      return p;
+    }));
+
+    setMovements(prev => [{
+      id: `mov-${Date.now()}`,
+      date: today,
+      productId,
+      productName: product ? product.name : 'Produk',
+      type: 'out',
+      qty: returnQty,
+      reference: number,
+      warehouseId,
+      notes: `Retur pemasok ${supplier?.name || 'Supplier'}: ${reason}`
+    }, ...prev]);
+
+    if (resolution === 'Pengembalian Dana') {
+      addFinancialRecord({
+        date: today,
+        type: 'income',
+        category: 'Retur Pembelian',
+        amount: totalRefund,
+        description: `Pengembalian dana retur ${number} dari ${supplier?.name || 'Supplier'} (${returnQty} unit ${product?.name})`,
+        paymentMethod: 'Transfer Bank'
+      });
+    }
+
+    const newReturn = {
+      id: `rtn-${Date.now()}`,
+      number,
+      date: today,
+      poNumber: poNumber || '—',
+      supplierId,
+      supplierName: supplier ? supplier.name : 'Pemasok',
+      warehouseId,
+      productId,
+      productName: product ? product.name : 'Produk',
+      qty: returnQty,
+      unit: product ? product.unit : 'pcs',
+      unitPrice,
+      totalRefund,
+      reason,
+      resolution: resolution || 'Tukar Barang Baru',
+      status: 'approved',
+      submittedBy: submittedBy || 'Staff Gudang',
+      notes: notes || ''
+    };
+
+    setPurchaseReturns(prev => [newReturn, ...prev]);
+    showToast('success', 'Retur Pembelian Dicatat', `Retur ${number} (${returnQty} ${product ? product.unit : 'unit'}) kepada ${supplier ? supplier.name : 'supplier'} berhasil diproses.`);
+    return { success: true, newReturn };
+  };
+
   // 6. Financial Entry Management
   const addFinancialRecord = (record) => {
     const newRec = {
@@ -878,6 +990,8 @@ export const AppProvider = ({ children }) => {
         goodsReceipts,
         stockTransfers,
         stockAdjustments,
+        purchaseReturns,
+        setPurchaseReturns,
         userRole,
         setUserRole,
         activeStaffId,
@@ -902,12 +1016,15 @@ export const AppProvider = ({ children }) => {
         receivePurchaseOrder,
         addSupplier,
         updateSupplier,
+        deleteSupplier,
+        addWarehouse,
         createRequisition,
         approveRequisition,
         rejectRequisition,
         convertRequisitionToPO,
         createStockTransfer,
         createStockAdjustment,
+        createPurchaseReturn,
         addFinancialRecord,
         addCustomer,
         updateCustomer,

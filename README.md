@@ -1,10 +1,10 @@
-# PU Salon & Barbershop - Enterprise ERP SIM
+﻿# PU Salon & Barbershop - Enterprise ERP SIM
 
 Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif, dan terintegrasi untuk **PU Salon & Barbershop**. Dirancang khusus untuk mengelola operasional harian salon kecantikan dan barbershop secara menyeluruh, mulai dari reservasi pelanggan, kasir Point of Sales (POS), pelacakan inventaris berstandar FIFO, loyalitas CRM, manajemen keuangan & laba rugi, hingga pengadaan supplier, **Supply Chain Management (SCM) multi-gudang**, dan pembagian hak akses (RBAC).
 
 ---
 
-## 💈 Profil Bisnis & Jam Operasional
+## ðŸ’ˆ Profil Bisnis & Jam Operasional
 
 - **Nama Usaha**: PU Salon & Barbershop
 - **Jenis Usaha**: Salon Kecantikan & Barbershop Premium
@@ -14,14 +14,14 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
   2. **Siti Rahmawati** - Senior Hair Stylist & Colorist (Balayage, Creambath Tradisional, Hair Spa & Blow)
   3. **Rian Pratama** - All-Round Stylist & Barber (Modern Cuts, Scalp Therapy & Reflexology)
 - **Jam Operasional**:
-  - **Senin**: 11:00 – 16:00 WIB (Last Order: 15:00)
-  - **Selasa – Minggu**: 11:00 – 21:00 WIB (Last Order: 20:00)
+  - **Senin**: 11:00 â€“ 16:00 WIB (Last Order: 15:00)
+  - **Selasa â€“ Minggu**: 11:00 â€“ 21:00 WIB (Last Order: 20:00)
 - **Metode Pembayaran**: Tunai (Cash) & QRIS Statis/Dinamis
 - **Target Pengunjung**: ~30 Pelanggan / Hari
 
 ---
 
-## 🚀 9 Modul Utama ERP
+## ðŸš€ 9 Modul Utama ERP
 
 ### 1. Dashboard Utama & Real-Time Analytics
 - Kartu KPI Pendapatan Harian, Mingguan, dan Bulanan.
@@ -74,7 +74,7 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
 
 ### 8. Supply Chain Management (SCM) & Multi-Gudang
 - **Master Pemasok**: kode pemasok, kategori, PIC, termin pembayaran (COD/NET 14/30/45/60), lead time, rating, serta performa (total PO, nilai belanja, dan persentase ketepatan waktu).
-- **Alur Pengadaan Berjenjang**: Permintaan Pembelian (PR) per departemen → approval → konversi otomatis menjadi Purchase Order dengan estimasi biaya.
+- **Alur Pengadaan Berjenjang**: Permintaan Pembelian (PR) per departemen â†’ approval â†’ konversi otomatis menjadi Purchase Order dengan estimasi biaya.
 - **Multi-Gudang**: Gudang Utama, Gudang Barbershop, dan Gudang Retail & Display lengkap dengan kapasitas, jumlah SKU, dan nilai stok masing-masing.
 - **Transfer Stok Antar Gudang** dengan validasi ketersediaan stok asal dan pencatatan mutasi keluar-masuk.
 - **Stock Opname**: pencocokan stok sistem vs stok fisik, perhitungan selisih otomatis, alasan penyesuaian, dan audit trail.
@@ -93,7 +93,7 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
 
 ---
 
-## 🛠️ Arsitektur Teknologi
+## ðŸ› ï¸ Arsitektur Teknologi
 
 - **Frontend & Fullstack**: React 18, Vite 5, Tailwind CSS 3
 - **Iconography**: Lucide React
@@ -103,7 +103,7 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
 
 ---
 
-## 💻 Panduan Menjalankan Aplikasi Secara Lokal
+## ðŸ’» Panduan Menjalankan Aplikasi Secara Lokal
 
 ### Prasyarat
 - Node.js versi 18+ atau 20+ / LTS
@@ -132,4 +132,4 @@ npm run preview
 
 ---
 
-*Hak Cipta © 2026 PU Salon & Barbershop. Seluruh hak cipta dilindungi undang-undang.*
+*Hak Cipta Â© 2026 PU Salon & Barbershop. Seluruh hak cipta dilindungi undang-undang.*
