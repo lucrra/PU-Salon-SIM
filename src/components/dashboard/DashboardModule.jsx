@@ -83,7 +83,7 @@ export const DashboardModule = () => {
             <span>Sistem ERP Terpadu PU Salon & Barbershop</span>
           </div>
           <h2 className="text-2xl font-serif font-bold text-ivory-50">
-            Selamat Datang, {userRole === 'owner' ? 'Ibu Yuni (Owner)' : userRole === 'admin' ? 'Admin Dian' : 'Rekan Staf'}
+            Selamat Datang
           </h2>
           <p className="text-xs text-charcoal-300 max-w-xl">
             Semua modul operasional terhubung secara otomatis: booking janji temu, kasir POS Tunai/QRIS, pengurangan inventaris FIFO, CRM pelanggan, dan pembukuan laba rugi.
