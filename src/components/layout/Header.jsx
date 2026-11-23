@@ -163,7 +163,7 @@ export const Header = () => {
             </div>
             <div className="text-left hidden sm:block">
               <div className="text-xs font-bold text-charcoal-800 capitalize flex items-center gap-1">
-                {userRole === 'owner' ? 'Owner (Yuni)' : userRole === 'admin' ? 'Admin (Dian)' : `Staf (${staff.find(s=>s.id===activeStaffId)?.name.split(' ')[0] || 'Staf'})`}
+                {userRole === 'owner' ? 'Owner (Pemilik)' : userRole === 'admin' ? 'Admin Salon' : `Staf (${staff.find(s=>s.id===activeStaffId)?.name.split(' ')[0] || 'Staf'})`}
                 <Shield className="w-3 h-3 text-champagne-600" />
               </div>
               <p className="text-[10px] text-charcoal-400 capitalize">{userRole} Access</p>
