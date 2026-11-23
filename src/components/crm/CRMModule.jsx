@@ -380,7 +380,9 @@ export const CRMModule = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-charcoal-700 mb-1">Tanggal Lahir</label>
+                  <label className="block font-bold text-charcoal-700 mb-1">
+                  Tanggal Lahir <span className="font-normal text-xs text-charcoal-400">(untuk promo diskon ulang tahun)</span>
+                </label>
                   <input
                     type="date"
                     value={formData.birthday}
@@ -403,14 +405,17 @@ export const CRMModule = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-charcoal-700 mb-1">Alamat</label>
+                <label className="block font-bold text-charcoal-700 mb-1">
+                  Alamat <span className="font-normal text-xs text-charcoal-400">(untuk treatment khusus & promosi)</span>
+                </label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="Contoh: Kelapa Gading Blok PU No. 12"
+                  placeholder="Contoh: Jl. Maera Sari No.11, Banjarsari, Semarang"
                   className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
                 />
+                <p className="text-[10px] text-charcoal-400 mt-1">Data nama, tanggal lahir, dan alamat disimpan untuk treatment khusus serta promosi/diskon ulang tahun.</p>
               </div>
 
               <div>

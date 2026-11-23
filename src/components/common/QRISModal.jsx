@@ -46,7 +46,7 @@ export const QRISModal = ({ total, onSuccess, onCancel }) => {
           <div className="text-2xl font-serif font-bold text-charcoal-900">
             Rp {total.toLocaleString('id-ID')}
           </div>
-          <p className="text-[10px] text-charcoal-400">NMID: ID1020038849202 • Kelapa Gading</p>
+          <p className="text-[10px] text-charcoal-400">NMID: ID1020038849202 • Jl. Maera Sari No.11, Banjarsari, Semarang</p>
         </div>
 
         {/* QR Code Container */}
