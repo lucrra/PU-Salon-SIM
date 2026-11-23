@@ -528,30 +528,67 @@ export const INITIAL_TRANSACTIONS = [
 export const INITIAL_SUPPLIERS = [
   {
     id: "sup-1",
+    code: "SUP-001",
     name: "PT Makarizo Beauty Indonesia",
     contactPerson: "Ibu Linda Wijaya",
     phone: "021-8976-5544",
     email: "orders@makarizo.co.id",
     address: "Kawasan Industri Pulo Gadung, Jakarta Timur",
-    productsSupplied: ["Creambath Cream", "Bleaching Powder", "Hair Tonic"]
+    productsSupplied: ["Creambath Cream", "Bleaching Powder", "Hair Tonic"],
+    category: "Bahan Perawatan",
+    paymentTerms: "NET 30",
+    leadTimeDays: 5,
+    rating: 4.7,
+    status: "active",
+    since: "2023-04-12"
   },
   {
     id: "sup-2",
+    code: "SUP-002",
     name: "CV Barbershop Supply Jaya",
     contactPerson: "Pak Rudi Hartono",
     phone: "0811-9876-1234",
     email: "sales@barbersupply.id",
     address: "Jl. Mangga Dua Raya No. 45, Jakarta Barat",
-    productsSupplied: ["Suavecito Pomade", "Silet Feather", "Kertas Leher", "Beard Oil"]
+    productsSupplied: ["Suavecito Pomade", "Silet Feather", "Kertas Leher", "Beard Oil"],
+    category: "Peralatan & Retail Barber",
+    paymentTerms: "NET 14",
+    leadTimeDays: 3,
+    rating: 4.9,
+    status: "active",
+    since: "2022-09-01"
   },
   {
     id: "sup-3",
+    code: "SUP-003",
     name: "L'Oreal Professionnel Distributor Resmi",
     contactPerson: "Bpk. Edwin Pratama",
     phone: "021-5299-8800",
     email: "b2b@loreal-dist.co.id",
     address: "Gedung Cyber 2 Lantai 18, HR Rasuna Said, Jakarta",
-    productsSupplied: ["L'Oreal Hair Spa", "Moroccanoil Treatment", "Matrix Opti.Straight"]
+    productsSupplied: ["L'Oreal Hair Spa", "Moroccanoil Treatment", "Matrix Opti.Straight"],
+    category: "Bahan Premium",
+    paymentTerms: "NET 45",
+    leadTimeDays: 7,
+    rating: 4.6,
+    status: "active",
+    since: "2023-01-18"
+  },
+  {
+    id: "sup-4",
+    code: "SUP-004",
+    name: "PT Duta Abadi Prima",
+    contactPerson: "Ibu Ratna Sari",
+    phone: "021-6388-7711",
+    email: "cs@dutaabadi.co.id",
+    address: "Ruko Mega Grosir Cempaka Mas Blok I No. 8, Jakarta Pusat",
+    productsSupplied: ["Kertas Leher", "Silet Feather", "Alat Cukur", "Disinfektan"],
+    category: "Konsumsi & Perlengkapan",
+    paymentTerms: "COD",
+    leadTimeDays: 2,
+    rating: 4.4,
+    status: "active",
+    since: "2024-06-05"
   }
 ];
 
@@ -569,6 +606,8 @@ export const INITIAL_PURCHASE_ORDERS = [
     ],
     totalAmount: 970000,
     receivedDate: "2026-11-17",
+    expectedDate: "2026-11-17",
+    warehouseId: "wh-main",
     notes: "Stok restock awal bulan sudah diterima lengkap di gudang salon."
   },
   {
@@ -584,6 +623,8 @@ export const INITIAL_PURCHASE_ORDERS = [
     ],
     totalAmount: 2305000,
     receivedDate: null,
+    expectedDate: "2026-11-25",
+    warehouseId: "wh-main",
     notes: "Pesanan mendesak untuk restock Moroccanoil yang menipis."
   }
 ];
@@ -676,4 +717,230 @@ export const INITIAL_INVENTORY_MOVEMENTS = [
   { id: "mov-2", date: "2026-11-17", productId: "prd-9", productName: "Kertas Leher Barbershop", type: "in", qty: 10, reference: "PO-202611-001", notes: "Barang masuk dari supplier" },
   { id: "mov-3", date: "2026-11-20", productId: "prd-1", productName: "Suavecito Matte Pomade", type: "out", qty: 1, reference: "INV-20261120-001", notes: "Penjualan Ritel Kasir POS" },
   { id: "mov-4", date: "2026-11-19", productId: "prd-2", productName: "Makarizo Creambath", type: "out", qty: 1, reference: "SRV-TRT-01", notes: "Pemakaian treatment salon" }
+];
+
+// ============================================================
+// SCM (Supply Chain Management) — Gudang, Pemasok, Pengadaan
+// ============================================================
+
+export const INITIAL_WAREHOUSES = [
+  {
+    id: "wh-main",
+    code: "GD-UTM",
+    name: "Gudang Utama",
+    type: "main",
+    address: "Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading",
+    manager: "Budi Santoso",
+    capacity: 120,
+    status: "active"
+  },
+  {
+    id: "wh-barber",
+    code: "GD-BRB",
+    name: "Gudang Barbershop",
+    type: "barber",
+    address: "Area Barbershop — Lantai 1",
+    manager: "Rian Pratama",
+    capacity: 60,
+    status: "active"
+  },
+  {
+    id: "wh-retail",
+    code: "GD-RTL",
+    name: "Gudang Retail & Display",
+    type: "retail",
+    address: "Area Kasir & Display — Lantai 1",
+    manager: "Siti Rahmawati",
+    capacity: 60,
+    status: "active"
+  }
+];
+
+// Alokasi stok per gudang (total per produk = currentStock pada INITIAL_PRODUCTS)
+export const INITIAL_WAREHOUSE_STOCK = [
+  { id: "wst-1", warehouseId: "wh-main", productId: "prd-1", qty: 10 },
+  { id: "wst-2", warehouseId: "wh-retail", productId: "prd-1", qty: 6 },
+  { id: "wst-3", warehouseId: "wh-main", productId: "prd-2", qty: 5 },
+  { id: "wst-4", warehouseId: "wh-barber", productId: "prd-2", qty: 3 },
+  { id: "wst-5", warehouseId: "wh-main", productId: "prd-3", qty: 2 },
+  { id: "wst-6", warehouseId: "wh-barber", productId: "prd-3", qty: 2 },
+  { id: "wst-7", warehouseId: "wh-main", productId: "prd-4", qty: 2 },
+  { id: "wst-8", warehouseId: "wh-barber", productId: "prd-4", qty: 1 },
+  { id: "wst-9", warehouseId: "wh-main", productId: "prd-5", qty: 7 },
+  { id: "wst-10", warehouseId: "wh-retail", productId: "prd-5", qty: 5 },
+  { id: "wst-11", warehouseId: "wh-main", productId: "prd-6", qty: 4 },
+  { id: "wst-12", warehouseId: "wh-retail", productId: "prd-6", qty: 3 },
+  { id: "wst-13", warehouseId: "wh-retail", productId: "prd-7", qty: 2 },
+  { id: "wst-14", warehouseId: "wh-barber", productId: "prd-8", qty: 1 },
+  { id: "wst-15", warehouseId: "wh-main", productId: "prd-9", qty: 9 },
+  { id: "wst-16", warehouseId: "wh-barber", productId: "prd-9", qty: 6 },
+  { id: "wst-17", warehouseId: "wh-main", productId: "prd-10", qty: 2 },
+  { id: "wst-18", warehouseId: "wh-barber", productId: "prd-10", qty: 2 }
+];
+
+export const INITIAL_REQUISITIONS = [
+  {
+    id: "pr-1",
+    number: "PR-202611-001",
+    date: "2026-11-21",
+    department: "Barbershop",
+    requestedBy: "Budi Santoso",
+    warehouseId: "wh-barber",
+    priority: "high",
+    status: "pending", // pending, approved, converted, rejected
+    supplierId: "sup-4",
+    supplierName: "PT Duta Abadi Prima",
+    items: [
+      { productId: "prd-9", productName: "Kertas Leher Barbershop (Neck Paper Roll)", qty: 20, unit: "roll", estimatedPrice: 12000 },
+      { productId: "prd-10", productName: "Pisau Silet Feather Double Edge (Isi 100)", qty: 5, unit: "box", estimatedPrice: 75000 }
+    ],
+    totalEstimate: 615000,
+    notes: "Kebutuhan operasional barbershop 2 minggu ke depan."
+  },
+  {
+    id: "pr-2",
+    number: "PR-202611-002",
+    date: "2026-11-22",
+    department: "Retail",
+    requestedBy: "Siti Rahmawati",
+    warehouseId: "wh-retail",
+    priority: "high",
+    status: "approved",
+    supplierId: "sup-3",
+    supplierName: "L'Oreal Professionnel Distributor Resmi",
+    items: [
+      { productId: "prd-7", productName: "Moroccanoil Treatment 100ml", qty: 10, unit: "bottle", estimatedPrice: 280000 }
+    ],
+    totalEstimate: 2800000,
+    notes: "Stok display tersisa 2 botol, permintaan pelanggan tinggi."
+  },
+  {
+    id: "pr-3",
+    number: "PR-202611-003",
+    date: "2026-11-18",
+    department: "Purchasing",
+    requestedBy: "Budi Santoso",
+    warehouseId: "wh-main",
+    priority: "medium",
+    status: "converted",
+    poId: "po-2",
+    supplierId: "sup-3",
+    supplierName: "L'Oreal Professionnel Distributor Resmi",
+    items: [
+      { productId: "prd-7", productName: "Moroccanoil Treatment 100ml", qty: 6, unit: "bottle", estimatedPrice: 280000 },
+      { productId: "prd-3", productName: "L'Oreal Professionnel Hair Spa 500ml", qty: 5, unit: "jar", estimatedPrice: 125000 }
+    ],
+    totalEstimate: 2305000,
+    notes: "Sudah dikonversi menjadi PO-202611-002."
+  },
+  {
+    id: "pr-4",
+    number: "PR-202611-004",
+    date: "2026-11-20",
+    department: "Barbershop",
+    requestedBy: "Rian Pratama",
+    warehouseId: "wh-barber",
+    priority: "low",
+    status: "rejected",
+    supplierId: "sup-1",
+    supplierName: "PT Makarizo Beauty Indonesia",
+    items: [
+      { productId: "prd-8", productName: "Bleaching Powder Blue 500g", qty: 10, unit: "can", estimatedPrice: 110000 }
+    ],
+    totalEstimate: 1100000,
+    notes: "Stok bleaching masih cukup, pengadaan ditunda ke bulan depan."
+  }
+];
+
+export const INITIAL_GOODS_RECEIPTS = [
+  {
+    id: "gr-1",
+    number: "GR-202611-001",
+    poId: "po-1",
+    poNumber: "PO-202611-001",
+    supplierId: "sup-2",
+    supplierName: "CV Barbershop Supply Jaya",
+    warehouseId: "wh-main",
+    receivedDate: "2026-11-17",
+    receivedBy: "Budi Santoso",
+    status: "completed",
+    items: [
+      { productId: "prd-1", productName: "Suavecito Matte Pomade 113g", qtyOrdered: 10, qtyReceived: 10, condition: "good" },
+      { productId: "prd-9", productName: "Kertas Leher Barbershop", qtyOrdered: 10, qtyReceived: 10, condition: "good" }
+    ],
+    notes: "Diterima lengkap dan langsung masuk Gudang Utama."
+  }
+];
+
+export const INITIAL_STOCK_TRANSFERS = [
+  {
+    id: "trf-1",
+    number: "TRF-202611-001",
+    date: "2026-11-18",
+    fromWarehouseId: "wh-main",
+    toWarehouseId: "wh-retail",
+    productId: "prd-1",
+    productName: "Suavecito Matte Pomade 113g",
+    qty: 4,
+    status: "completed",
+    requestedBy: "Siti Rahmawati",
+    notes: "Penambahan display retail depan kasir."
+  },
+  {
+    id: "trf-2",
+    number: "TRF-202611-002",
+    date: "2026-11-19",
+    fromWarehouseId: "wh-main",
+    toWarehouseId: "wh-barber",
+    productId: "prd-9",
+    productName: "Kertas Leher Barbershop (Neck Paper Roll)",
+    qty: 5,
+    status: "completed",
+    requestedBy: "Budi Santoso",
+    notes: "Stok harian barbershop."
+  },
+  {
+    id: "trf-3",
+    number: "TRF-202611-003",
+    date: "2026-11-20",
+    fromWarehouseId: "wh-main",
+    toWarehouseId: "wh-barber",
+    productId: "prd-2",
+    productName: "Makarizo Hair Energy Creambath 500g",
+    qty: 2,
+    status: "completed",
+    requestedBy: "Rian Pratama",
+    notes: "Persiapan treatment creambath akhir pekan."
+  }
+];
+
+export const INITIAL_STOCK_ADJUSTMENTS = [
+  {
+    id: "adj-1",
+    number: "ADJ-202611-001",
+    date: "2026-11-19",
+    warehouseId: "wh-barber",
+    productId: "prd-8",
+    productName: "Bleaching Powder Blue 500g",
+    systemQty: 2,
+    physicalQty: 1,
+    difference: -1,
+    reason: "Stock opname: kemasan rusak/pecah saat penyimpanan",
+    status: "approved",
+    approvedBy: "Owner"
+  },
+  {
+    id: "adj-2",
+    number: "ADJ-202611-002",
+    date: "2026-11-20",
+    warehouseId: "wh-retail",
+    productId: "prd-6",
+    productName: "Beard Oil Sandalwood & Cedar 30ml",
+    systemQty: 4,
+    physicalQty: 3,
+    difference: -1,
+    reason: "Stock opname: tester display terpakai",
+    status: "approved",
+    approvedBy: "Owner"
+  }
 ];

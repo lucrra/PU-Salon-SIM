@@ -8,6 +8,7 @@ import {
   Users,
   Coins,
   Truck,
+  Warehouse,
   ShieldCheck,
   Clock,
   Sparkles,
@@ -16,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, userRole, salonProfile, resetAllData, products, appointments } = useApp();
+  const { activeTab, setActiveTab, userRole, salonProfile, resetAllData, products, appointments, requisitions } = useApp();
 
   // Navigation Items
   const navItems = [
@@ -24,6 +25,7 @@ export const Sidebar = () => {
     { id: 'booking', label: 'Booking & Jadwal', icon: CalendarDays, roles: ['owner', 'admin', 'staff'], badge: appointments.filter(a => a.status === 'pending').length },
     { id: 'pos', label: 'Kasir POS', icon: ShoppingBag, roles: ['owner', 'admin'] },
     { id: 'inventory', label: 'Inventaris & FIFO', icon: Package, roles: ['owner', 'admin'], badge: products.filter(p => p.currentStock <= p.minStock).length, badgeColor: 'bg-rose-500' },
+    { id: 'scm', label: 'SCM & Gudang', icon: Warehouse, roles: ['owner', 'admin'], badge: requisitions.filter(r => r.status === 'pending').length },
     { id: 'crm', label: 'CRM Pelanggan', icon: Users, roles: ['owner', 'admin'] },
     { id: 'finance', label: 'Keuangan & Laba', icon: Coins, roles: ['owner'] }, // Owner only
     { id: 'procurement', label: 'Supplier & PO', icon: Truck, roles: ['owner', 'admin'] },

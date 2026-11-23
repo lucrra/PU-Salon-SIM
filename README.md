@@ -1,6 +1,6 @@
 # PU Salon & Barbershop - Enterprise ERP SIM
 
-Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif, dan terintegrasi untuk **PU Salon & Barbershop**. Dirancang khusus untuk mengelola operasional harian salon kecantikan dan barbershop secara menyeluruh, mulai dari reservasi pelanggan, kasir Point of Sales (POS), pelacakan inventaris berstandar FIFO, loyalitas CRM, manajemen keuangan & laba rugi, hingga pengadaan supplier dan pembagian hak akses (RBAC).
+Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif, dan terintegrasi untuk **PU Salon & Barbershop**. Dirancang khusus untuk mengelola operasional harian salon kecantikan dan barbershop secara menyeluruh, mulai dari reservasi pelanggan, kasir Point of Sales (POS), pelacakan inventaris berstandar FIFO, loyalitas CRM, manajemen keuangan & laba rugi, hingga pengadaan supplier, **Supply Chain Management (SCM) multi-gudang**, dan pembagian hak akses (RBAC).
 
 ---
 
@@ -21,7 +21,7 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
 
 ---
 
-## 🚀 8 Modul Utama ERP
+## 🚀 9 Modul Utama ERP
 
 ### 1. Dashboard Utama & Real-Time Analytics
 - Kartu KPI Pendapatan Harian, Mingguan, dan Bulanan.
@@ -72,7 +72,17 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
 - Siklus PO: `Draft` $\rightarrow$ `Ordered` $\rightarrow$ `Received`.
 - **Otomasi Terintegrasi**: Begitu barang PO ditandai "Diterima", sistem secara otomatis menambah stok produk, membuat batch FIFO baru, mencatat mutasi stok masuk, dan membukukan pengeluaran di jurnal keuangan.
 
-### 8. Manajemen Tim & Hak Akses (RBAC)
+### 8. Supply Chain Management (SCM) & Multi-Gudang
+- **Master Pemasok**: kode pemasok, kategori, PIC, termin pembayaran (COD/NET 14/30/45/60), lead time, rating, serta performa (total PO, nilai belanja, dan persentase ketepatan waktu).
+- **Alur Pengadaan Berjenjang**: Permintaan Pembelian (PR) per departemen → approval → konversi otomatis menjadi Purchase Order dengan estimasi biaya.
+- **Multi-Gudang**: Gudang Utama, Gudang Barbershop, dan Gudang Retail & Display lengkap dengan kapasitas, jumlah SKU, dan nilai stok masing-masing.
+- **Transfer Stok Antar Gudang** dengan validasi ketersediaan stok asal dan pencatatan mutasi keluar-masuk.
+- **Stock Opname**: pencocokan stok sistem vs stok fisik, perhitungan selisih otomatis, alasan penyesuaian, dan audit trail.
+- **Goods Receipt (GR)**: dokumen penerimaan barang otomatis saat PO diterima, termasuk gudang penerima dan kondisi barang.
+- **Rekomendasi Pengadaan Ulang**: daftar produk di bawah minimum stok beserta saran kuantitas dan estimasi biaya.
+- **KPI SCM**: nilai persediaan, stok kritis, PO aktif, dan PR menunggu approval.
+
+### 9. Manajemen Tim & Hak Akses (RBAC)
 - Pengaturan profil dan jadwal 3 staf salon.
 - Status kehadiran real-time (`Tersedia`, `Melayani`, `Libur`).
 - Pengaturan persentase komisi pengerjaan dan pelacak tamu harian.

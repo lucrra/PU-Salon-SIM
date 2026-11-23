@@ -11,7 +11,13 @@ import {
   INITIAL_SUPPLIERS,
   INITIAL_PURCHASE_ORDERS,
   INITIAL_FINANCIAL_RECORDS,
-  INITIAL_INVENTORY_MOVEMENTS
+  INITIAL_INVENTORY_MOVEMENTS,
+  INITIAL_WAREHOUSES,
+  INITIAL_WAREHOUSE_STOCK,
+  INITIAL_REQUISITIONS,
+  INITIAL_GOODS_RECEIPTS,
+  INITIAL_STOCK_TRANSFERS,
+  INITIAL_STOCK_ADJUSTMENTS
 } from '../data/initialData';
 
 const AppContext = createContext();
@@ -39,6 +45,14 @@ export const AppProvider = ({ children }) => {
   const [purchaseOrders, setPurchaseOrders] = useState(() => loadState('pos', INITIAL_PURCHASE_ORDERS));
   const [financialRecords, setFinancialRecords] = useState(() => loadState('finances', INITIAL_FINANCIAL_RECORDS));
   const [movements, setMovements] = useState(() => loadState('movements', INITIAL_INVENTORY_MOVEMENTS));
+
+  // SCM state
+  const [warehouses, setWarehouses] = useState(() => loadState('warehouses', INITIAL_WAREHOUSES));
+  const [warehouseStock, setWarehouseStock] = useState(() => loadState('warehouseStock', INITIAL_WAREHOUSE_STOCK));
+  const [requisitions, setRequisitions] = useState(() => loadState('requisitions', INITIAL_REQUISITIONS));
+  const [goodsReceipts, setGoodsReceipts] = useState(() => loadState('goodsReceipts', INITIAL_GOODS_RECEIPTS));
+  const [stockTransfers, setStockTransfers] = useState(() => loadState('stockTransfers', INITIAL_STOCK_TRANSFERS));
+  const [stockAdjustments, setStockAdjustments] = useState(() => loadState('stockAdjustments', INITIAL_STOCK_ADJUSTMENTS));
 
   // Current User Role: 'owner' | 'admin' | 'staff'
   const [userRole, setUserRole] = useState(() => loadState('role', 'owner'));
@@ -75,6 +89,12 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('pu_salon_pos', JSON.stringify(purchaseOrders)); }, [purchaseOrders]);
   useEffect(() => { localStorage.setItem('pu_salon_finances', JSON.stringify(financialRecords)); }, [financialRecords]);
   useEffect(() => { localStorage.setItem('pu_salon_movements', JSON.stringify(movements)); }, [movements]);
+  useEffect(() => { localStorage.setItem('pu_salon_warehouses', JSON.stringify(warehouses)); }, [warehouses]);
+  useEffect(() => { localStorage.setItem('pu_salon_warehouseStock', JSON.stringify(warehouseStock)); }, [warehouseStock]);
+  useEffect(() => { localStorage.setItem('pu_salon_requisitions', JSON.stringify(requisitions)); }, [requisitions]);
+  useEffect(() => { localStorage.setItem('pu_salon_goodsReceipts', JSON.stringify(goodsReceipts)); }, [goodsReceipts]);
+  useEffect(() => { localStorage.setItem('pu_salon_stockTransfers', JSON.stringify(stockTransfers)); }, [stockTransfers]);
+  useEffect(() => { localStorage.setItem('pu_salon_stockAdjustments', JSON.stringify(stockAdjustments)); }, [stockAdjustments]);
   useEffect(() => { localStorage.setItem('pu_salon_role', JSON.stringify(userRole)); }, [userRole]);
   useEffect(() => { localStorage.setItem('pu_salon_activeStaffId', JSON.stringify(activeStaffId)); }, [activeStaffId]);
 
@@ -91,6 +111,12 @@ export const AppProvider = ({ children }) => {
     setPurchaseOrders(INITIAL_PURCHASE_ORDERS);
     setFinancialRecords(INITIAL_FINANCIAL_RECORDS);
     setMovements(INITIAL_INVENTORY_MOVEMENTS);
+    setWarehouses(INITIAL_WAREHOUSES);
+    setWarehouseStock(INITIAL_WAREHOUSE_STOCK);
+    setRequisitions(INITIAL_REQUISITIONS);
+    setGoodsReceipts(INITIAL_GOODS_RECEIPTS);
+    setStockTransfers(INITIAL_STOCK_TRANSFERS);
+    setStockAdjustments(INITIAL_STOCK_ADJUSTMENTS);
     showToast('info', 'Data Direset', 'Semua data contoh PU Salon & Barbershop telah dikembalikan ke awal.');
   };
 
@@ -229,6 +255,28 @@ export const AppProvider = ({ children }) => {
     showToast('info', 'Lanjut ke Kasir POS', `Data janji temu ${apt.customerName} dimasukkan ke keranjang kasir.`);
   };
 
+  // 2b. Warehouse Stock Engine — alokasi & pemindahan stok antar gudang
+  const deductWarehouseStock = (productId, qty) => {
+    const product = products.find(p => p.id === productId);
+    const order = product && product.type === 'retail'
+      ? ['wh-retail', 'wh-main', 'wh-barber']
+      : ['wh-barber', 'wh-main', 'wh-retail'];
+
+    setWarehouseStock(prev => {
+      let remaining = qty;
+      const next = prev.map(row => ({ ...row }));
+      for (const wid of order) {
+        if (remaining <= 0) break;
+        const row = next.find(r => r.warehouseId === wid && r.productId === productId);
+        if (!row || row.qty <= 0) continue;
+        const take = Math.min(row.qty, remaining);
+        row.qty -= take;
+        remaining -= take;
+      }
+      return next;
+    });
+  };
+
   // 3. FIFO Inventory Deduction Engine
   const deductStockFIFO = (productId, qtyToDeduct, reference = 'POS') => {
     let remainingToDeduct = qtyToDeduct;
@@ -268,6 +316,9 @@ export const AppProvider = ({ children }) => {
       }
       return prod;
     }));
+
+    // Update allocation per warehouse
+    deductWarehouseStock(productId, qtyToDeduct);
 
     // Log movement
     const product = products.find(p => p.id === productId);
@@ -389,12 +440,15 @@ export const AppProvider = ({ children }) => {
 
   // 5. Inventory & Supplier Purchase Order Workflows
   const createPurchaseOrder = (poData) => {
+    const now = new Date();
     const newPO = {
       ...poData,
       id: `po-${Date.now()}`,
       poNumber: `PO-${new Date().toISOString().slice(0,7).replace(/-/g,'')}-${Math.floor(100 + Math.random() * 900)}`,
       status: poData.status || 'ordered',
       date: new Date().toISOString().slice(0, 10),
+      expectedDate: poData.expectedDate || new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      warehouseId: poData.warehouseId || 'wh-main',
       receivedDate: null
     };
 
@@ -403,21 +457,23 @@ export const AppProvider = ({ children }) => {
     return newPO;
   };
 
-  const receivePurchaseOrder = (poId) => {
+  const receivePurchaseOrder = (poId, warehouseId) => {
     const po = purchaseOrders.find(p => p.id === poId);
     if (!po) return;
 
     const today = new Date().toISOString().slice(0, 10);
+    const targetWarehouseId = warehouseId || po.warehouseId || 'wh-main';
+    const targetWarehouse = warehouses.find(w => w.id === targetWarehouseId);
 
     // 1. Mark PO as received
     setPurchaseOrders(prev => prev.map(p => {
       if (p.id === poId) {
-        return { ...p, status: 'received', receivedDate: today };
+        return { ...p, status: 'received', receivedDate: today, warehouseId: targetWarehouseId };
       }
       return p;
     }));
 
-    // 2. Create FIFO Batches & Increase Stock
+    // 2. Create FIFO Batches, increase stock & warehouse allocation
     const newBatchesToAdd = [];
     po.items.forEach(item => {
       const batchNo = `BATCH-${today.replace(/-/g,'')}-${Math.floor(10 + Math.random() * 90)}`;
@@ -430,7 +486,8 @@ export const AppProvider = ({ children }) => {
         remainingQty: item.qty,
         costPrice: item.unitPrice,
         expiryDate: new Date(Date.now() + 365*2*24*60*60*1000).toISOString().slice(0, 10), // +2 years
-        supplierId: po.supplierId
+        supplierId: po.supplierId,
+        warehouseId: targetWarehouseId
       });
 
       // Increase product stock
@@ -440,6 +497,20 @@ export const AppProvider = ({ children }) => {
         }
         return prod;
       }));
+
+      // Increase warehouse allocation
+      setWarehouseStock(prev => {
+        const existing = prev.find(r => r.warehouseId === targetWarehouseId && r.productId === item.productId);
+        if (existing) {
+          return prev.map(r => r.id === existing.id ? { ...r, qty: r.qty + item.qty } : r);
+        }
+        return [...prev, {
+          id: `wst-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          warehouseId: targetWarehouseId,
+          productId: item.productId,
+          qty: item.qty
+        }];
+      });
 
       // Log movement
       setMovements(prevMoves => [
@@ -451,6 +522,7 @@ export const AppProvider = ({ children }) => {
           type: 'in',
           qty: item.qty,
           reference: po.poNumber,
+          warehouseId: targetWarehouseId,
           notes: `Penerimaan Barang Supplier (${po.supplierName})`
         },
         ...prevMoves
@@ -459,7 +531,30 @@ export const AppProvider = ({ children }) => {
 
     setBatches(prev => [...newBatchesToAdd, ...prev]);
 
-    // 3. Connect to Finance (Auto Record Expense for Restock)
+    // 3. Record goods receipt (dokumen penerimaan barang)
+    const newReceipt = {
+      id: `gr-${Date.now()}`,
+      number: `GR-${today.replace(/-/g, '').slice(0, 6)}-${Math.floor(100 + Math.random() * 900)}`,
+      poId: po.id,
+      poNumber: po.poNumber,
+      supplierId: po.supplierId,
+      supplierName: po.supplierName,
+      warehouseId: targetWarehouseId,
+      receivedDate: today,
+      receivedBy: 'Admin Gudang',
+      status: 'completed',
+      items: po.items.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        qtyOrdered: item.qty,
+        qtyReceived: item.qty,
+        condition: 'good'
+      })),
+      notes: `Penerimaan otomatis dari ${po.poNumber}`
+    };
+    setGoodsReceipts(prev => [newReceipt, ...prev]);
+
+    // 4. Connect to Finance (Auto Record Expense for Restock)
     const newExpense = {
       id: `fin-${Date.now()}`,
       type: 'expense',
@@ -472,7 +567,248 @@ export const AppProvider = ({ children }) => {
     };
     setFinancialRecords(prev => [newExpense, ...prev]);
 
-    showToast('success', 'Barang Diterima & Stok Bertambah', `PO #${po.poNumber} telah diterima. Stok produk dan jurnal pengeluaran telah diperbarui.`);
+    showToast('success', 'Barang Diterima & Stok Bertambah', `PO #${po.poNumber} diterima di ${targetWarehouse ? targetWarehouse.name : 'gudang'}. Batch FIFO, alokasi gudang, dan jurnal pengeluaran diperbarui.`);
+  };
+
+  // 5b. SCM — Master Pemasok
+  const addSupplier = (data) => {
+    const newSup = {
+      ...data,
+      id: `sup-${Date.now()}`,
+      code: `SUP-${String(suppliers.length + 1).padStart(3, '0')}`,
+      productsSupplied: data.productsSupplied || [],
+      status: 'active',
+      rating: Number(data.rating) || 4.5,
+      leadTimeDays: Number(data.leadTimeDays) || 5,
+      since: new Date().toISOString().slice(0, 10)
+    };
+    setSuppliers(prev => [...prev, newSup]);
+    showToast('success', 'Pemasok Ditambahkan', `${newSup.name} terdaftar sebagai pemasok resmi.`);
+    return newSup;
+  };
+
+  const updateSupplier = (id, data) => {
+    setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+    showToast('info', 'Data Pemasok Diperbarui', 'Perubahan data pemasok berhasil disimpan.');
+  };
+
+  // 5c. SCM — Pengadaan (Purchase Requisition → Purchase Order)
+  const createRequisition = (data) => {
+    const now = new Date();
+    const items = (data.items || []).map(i => {
+      const prod = products.find(p => p.id === i.productId);
+      return {
+        productId: i.productId,
+        productName: prod ? prod.name : (i.productName || 'Produk'),
+        qty: Number(i.qty) || 1,
+        unit: prod ? prod.unit : 'pcs',
+        estimatedPrice: Number(i.estimatedPrice) || (prod ? prod.buyPrice : 0)
+      };
+    });
+
+    const supplier = suppliers.find(s => s.id === data.supplierId);
+    const newReq = {
+      ...data,
+      id: `pr-${Date.now()}`,
+      number: `PR-${now.toISOString().slice(0, 7).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`,
+      date: now.toISOString().slice(0, 10),
+      status: 'pending',
+      supplierId: data.supplierId || (suppliers[0] ? suppliers[0].id : ''),
+      supplierName: supplier ? supplier.name : (suppliers[0] ? suppliers[0].name : 'Supplier'),
+      items,
+      totalEstimate: items.reduce((acc, i) => acc + i.qty * i.estimatedPrice, 0)
+    };
+
+    setRequisitions(prev => [newReq, ...prev]);
+    showToast('success', 'Permintaan Pembelian Diajukan', `PR #${newReq.number} menunggu persetujuan.`);
+    return newReq;
+  };
+
+  const approveRequisition = (id) => {
+    setRequisitions(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+    showToast('success', 'PR Disetujui', 'Permintaan pembelian siap dikonversi menjadi Purchase Order.');
+  };
+
+  const rejectRequisition = (id, reason) => {
+    setRequisitions(prev => prev.map(r => r.id === id ? {
+      ...r,
+      status: 'rejected',
+      notes: reason ? `${r.notes ? r.notes + ' — ' : ''}Ditolak: ${reason}` : r.notes
+    } : r));
+    showToast('info', 'PR Ditolak', 'Permintaan pembelian ditolak.');
+  };
+
+  const convertRequisitionToPO = (id) => {
+    const req = requisitions.find(r => r.id === id);
+    if (!req) return null;
+
+    const supplier = suppliers.find(s => s.id === req.supplierId) || suppliers[0];
+    const items = req.items.map(i => ({
+      productId: i.productId,
+      productName: i.productName,
+      qty: i.qty,
+      unitPrice: i.estimatedPrice,
+      total: i.qty * i.estimatedPrice
+    }));
+    const totalAmount = items.reduce((acc, i) => acc + i.total, 0);
+    const leadDays = supplier && supplier.leadTimeDays ? supplier.leadTimeDays : 7;
+
+    const newPO = createPurchaseOrder({
+      supplierId: supplier ? supplier.id : '',
+      supplierName: supplier ? supplier.name : 'Supplier',
+      items,
+      totalAmount,
+      notes: req.notes,
+      warehouseId: req.warehouseId,
+      requisitionId: req.id,
+      expectedDate: new Date(Date.now() + leadDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    });
+
+    setRequisitions(prev => prev.map(r => r.id === id ? { ...r, status: 'converted', poId: newPO.id } : r));
+    showToast('info', 'PR Dikonversi ke PO', `PR #${req.number} telah menjadi ${newPO.poNumber}.`);
+    return newPO;
+  };
+
+  // 5d. SCM — Gudang (transfer & stock opname)
+  const createStockTransfer = ({ fromWarehouseId, toWarehouseId, productId, qty, notes, requestedBy }) => {
+    const product = products.find(p => p.id === productId);
+    const qtyNum = Number(qty) || 0;
+
+    if (!product || qtyNum <= 0) {
+      showToast('error', 'Transfer Gagal', 'Jumlah atau produk transfer tidak valid.');
+      return { success: false };
+    }
+    if (fromWarehouseId === toWarehouseId) {
+      showToast('error', 'Transfer Gagal', 'Gudang asal dan gudang tujuan tidak boleh sama.');
+      return { success: false };
+    }
+
+    const sourceRow = warehouseStock.find(r => r.warehouseId === fromWarehouseId && r.productId === productId);
+    const available = sourceRow ? sourceRow.qty : 0;
+    if (qtyNum > available) {
+      showToast('error', 'Stok Tidak Cukup', `Stok ${product.name} di gudang asal hanya ${available} ${product.unit}.`);
+      return { success: false };
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const number = `TRF-${today.replace(/-/g, '').slice(0, 6)}-${Math.floor(100 + Math.random() * 900)}`;
+    const fromName = warehouses.find(w => w.id === fromWarehouseId)?.name || 'Gudang Asal';
+    const toName = warehouses.find(w => w.id === toWarehouseId)?.name || 'Gudang Tujuan';
+
+    setWarehouseStock(prev => {
+      const next = prev.map(r => ({ ...r }));
+      const src = next.find(r => r.warehouseId === fromWarehouseId && r.productId === productId);
+      if (src) src.qty -= qtyNum;
+      const dest = next.find(r => r.warehouseId === toWarehouseId && r.productId === productId);
+      if (dest) {
+        dest.qty += qtyNum;
+      } else {
+        next.push({ id: `wst-${Date.now()}`, warehouseId: toWarehouseId, productId, qty: qtyNum });
+      }
+      return next;
+    });
+
+    setStockTransfers(prev => [{
+      id: `trf-${Date.now()}`,
+      number,
+      date: today,
+      fromWarehouseId,
+      toWarehouseId,
+      productId,
+      productName: product.name,
+      qty: qtyNum,
+      status: 'completed',
+      requestedBy: requestedBy || 'Admin Gudang',
+      notes: notes || ''
+    }, ...prev]);
+
+    setMovements(prev => [
+      {
+        id: `mov-${Date.now()}-out`,
+        date: today,
+        productId,
+        productName: product.name,
+        type: 'out',
+        qty: qtyNum,
+        reference: number,
+        warehouseId: fromWarehouseId,
+        notes: `Transfer keluar ke ${toName}`
+      },
+      {
+        id: `mov-${Date.now()}-in`,
+        date: today,
+        productId,
+        productName: product.name,
+        type: 'in',
+        qty: qtyNum,
+        reference: number,
+        warehouseId: toWarehouseId,
+        notes: `Transfer masuk dari ${fromName}`
+      },
+      ...prev
+    ]);
+
+    showToast('success', 'Transfer Stok Berhasil', `${qtyNum} ${product.unit} ${product.name} dipindahkan dari ${fromName} ke ${toName}.`);
+    return { success: true };
+  };
+
+  const createStockAdjustment = ({ warehouseId, productId, physicalQty, reason }) => {
+    const product = products.find(p => p.id === productId);
+    const row = warehouseStock.find(r => r.warehouseId === warehouseId && r.productId === productId);
+    const systemQty = row ? row.qty : 0;
+    const physical = Math.max(0, Number(physicalQty) || 0);
+    const difference = physical - systemQty;
+    const today = new Date().toISOString().slice(0, 10);
+    const number = `ADJ-${today.replace(/-/g, '').slice(0, 6)}-${Math.floor(100 + Math.random() * 900)}`;
+    const whName = warehouses.find(w => w.id === warehouseId)?.name || 'Gudang';
+
+    setWarehouseStock(prev => {
+      const existing = prev.find(r => r.warehouseId === warehouseId && r.productId === productId);
+      if (existing) {
+        return prev.map(r => r.id === existing.id ? { ...r, qty: physical } : r);
+      }
+      return [...prev, { id: `wst-${Date.now()}`, warehouseId, productId, qty: physical }];
+    });
+
+    setProducts(prev => prev.map(p => p.id === productId
+      ? { ...p, currentStock: Math.max(0, p.currentStock + difference) }
+      : p));
+
+    setStockAdjustments(prev => [{
+      id: `adj-${Date.now()}`,
+      number,
+      date: today,
+      warehouseId,
+      productId,
+      productName: product ? product.name : 'Produk',
+      systemQty,
+      physicalQty: physical,
+      difference,
+      reason: reason || 'Stock opname',
+      status: 'approved',
+      approvedBy: 'Owner'
+    }, ...prev]);
+
+    if (difference !== 0) {
+      setMovements(prev => [{
+        id: `mov-${Date.now()}`,
+        date: today,
+        productId,
+        productName: product ? product.name : 'Produk',
+        type: difference > 0 ? 'in' : 'out',
+        qty: Math.abs(difference),
+        reference: number,
+        warehouseId,
+        notes: `Penyesuaian stock opname ${whName} (${difference > 0 ? '+' : ''}${difference})`
+      }, ...prev]);
+    }
+
+    showToast(
+      'success',
+      'Stock Opname Disimpan',
+      `Selisih ${difference >= 0 ? '+' : ''}${difference} ${product ? product.unit : 'unit'} — ${product ? product.name : 'produk'} (${whName}).`
+    );
+    return { success: true, difference };
   };
 
   // 6. Financial Entry Management
@@ -536,6 +872,12 @@ export const AppProvider = ({ children }) => {
         purchaseOrders,
         financialRecords,
         movements,
+        warehouses,
+        warehouseStock,
+        requisitions,
+        goodsReceipts,
+        stockTransfers,
+        stockAdjustments,
         userRole,
         setUserRole,
         activeStaffId,
@@ -558,6 +900,14 @@ export const AppProvider = ({ children }) => {
         deductStockFIFO,
         createPurchaseOrder,
         receivePurchaseOrder,
+        addSupplier,
+        updateSupplier,
+        createRequisition,
+        approveRequisition,
+        rejectRequisition,
+        convertRequisitionToPO,
+        createStockTransfer,
+        createStockAdjustment,
         addFinancialRecord,
         addCustomer,
         updateCustomer,
