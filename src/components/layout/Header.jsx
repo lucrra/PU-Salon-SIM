@@ -62,13 +62,13 @@ export const Header = () => {
   ];
 
   return (
-    <header className="min-h-[5rem] py-3 bg-ivory-50 border-b border-ivory-300/80 px-8 flex items-center justify-between gap-4 shrink-0 shadow-soft sticky top-0 z-20">
+    <header className="min-h-[5rem] py-3 bg-ivory-50 border-b border-ivory-300/80 px-4 md:px-8 flex items-center justify-between gap-4 shrink-0 shadow-soft sticky top-0 z-20">
       {/* Title & Subtitle */}
-      <div>
-        <h1 className="text-xl font-serif font-bold text-charcoal-900 flex items-center gap-2">
+      <div className="min-w-0 flex-1">
+        <h1 className="text-lg xl:text-xl font-serif font-bold text-charcoal-900 flex items-center gap-2 leading-tight">
           {currentTabInfo.title}
         </h1>
-        <p className="text-xs text-charcoal-500 mt-0.5">{currentTabInfo.subtitle}</p>
+        <p className="hidden sm:block text-xs text-charcoal-500 mt-0.5 line-clamp-2">{currentTabInfo.subtitle}</p>
       </div>
 
       {/* Right Controls */}
@@ -92,10 +92,12 @@ export const Header = () => {
         {userRole !== 'staff' && (
           <button
             onClick={() => setActiveTab('pos')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-charcoal-900 hover:bg-charcoal-800 text-ivory-50 text-xs font-semibold transition-all shadow-sm hover:shadow active:scale-95"
+            title="Kasir Baru"
+            aria-label="Kasir Baru"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-charcoal-900 hover:bg-charcoal-800 text-ivory-50 text-xs font-semibold transition-all shadow-sm hover:shadow active:scale-95"
           >
             <PlusCircle className="w-4 h-4 text-champagne-400" />
-            <span>Kasir Baru</span>
+            <span className="hidden lg:inline">Kasir Baru</span>
           </button>
         )}
 
@@ -163,7 +165,7 @@ export const Header = () => {
             <div className="w-8 h-8 rounded-xl bg-champagne-100 border border-champagne-300 flex items-center justify-center text-champagne-800 font-bold text-xs">
               {userRole === 'owner' ? 'OW' : userRole === 'admin' ? 'AD' : 'ST'}
             </div>
-            <div className="text-left hidden sm:block">
+            <div className="text-left hidden lg:block">
               <div className="text-xs font-bold text-charcoal-800 capitalize flex items-center gap-1">
                 {userRole === 'owner' ? 'Owner (Pemilik)' : userRole === 'admin' ? 'Admin Salon' : `Staf (${staff.find(s=>s.id===activeStaffId)?.name.split(' ')[0] || 'Staf'})`}
                 <Shield className="w-3 h-3 text-champagne-600" />
