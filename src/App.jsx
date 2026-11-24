@@ -10,6 +10,7 @@ import { CRMModule } from './components/crm/CRMModule';
 import { FinanceModule } from './components/finance/FinanceModule';
 import { ProcurementModule } from './components/procurement/ProcurementModule';
 import { SCMModule } from './components/scm/SCMModule';
+import { PriceListModule } from './components/priceList/PriceListModule';
 import { UserManagementModule } from './components/users/UserManagementModule';
 import { ReceiptModal } from './components/common/ReceiptModal';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
@@ -25,6 +26,8 @@ const AppContent = () => {
         return <BookingModule />;
       case 'pos':
         return <POSModule />;
+      case 'pricelist':
+        return <PriceListModule />;
       case 'inventory':
         return <InventoryModule />;
       case 'scm':

@@ -36,6 +36,8 @@ export const Header = () => {
     booking: { title: 'Booking & Penjadwalan', subtitle: 'Kelola reservasi pelanggan online & walk-in serta ketersediaan staf' },
     pos: { title: 'Point of Sales (Kasir)', subtitle: 'Pencatatan transaksi pembayaran cepat dengan Tunai & QRIS' },
     inventory: { title: 'Manajemen Inventaris & FIFO', subtitle: 'Stok produk ritel & bahan salon dengan sistem antrean batch FIFO' },
+    pricelist: { title: 'Price List & Katalog Harga', subtitle: 'Daftar harga resmi layanan salon, barbershop, dan rias wajah' },
+    scm: { title: 'Supply Chain Management', subtitle: 'Pemasok, pengadaan, penerimaan barang, dan pengelolaan multi-gudang' },
     crm: { title: 'CRM & Riwayat Pelanggan', subtitle: 'Database pelanggan, riwayat treatment, dan promo ulang tahun' },
     finance: { title: 'Manajemen Keuangan & P&L', subtitle: 'Laporan laba rugi, arus kas, dan rincian pendapatan & beban' },
     procurement: { title: 'Pengadaan & Supplier', subtitle: 'Pemesanan bahan ke pemasok resmi dan penerimaan barang masuk' },
@@ -60,7 +62,7 @@ export const Header = () => {
   ];
 
   return (
-    <header className="h-20 bg-ivory-50 border-b border-ivory-300/80 px-8 flex items-center justify-between shrink-0 shadow-soft sticky top-0 z-20">
+    <header className="min-h-[5rem] py-3 bg-ivory-50 border-b border-ivory-300/80 px-8 flex items-center justify-between gap-4 shrink-0 shadow-soft sticky top-0 z-20">
       {/* Title & Subtitle */}
       <div>
         <h1 className="text-xl font-serif font-bold text-charcoal-900 flex items-center gap-2">

@@ -45,3 +45,34 @@
     box-shadow: none;
   }
 }
+
+/* Print styles for the price list catalog */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  #printable-price-list,
+  #printable-price-list * {
+    visibility: visible;
+  }
+  #printable-price-list {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background: white;
+    color: black;
+    box-shadow: none;
+  }
+  #printable-price-list .print-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border-color: #d8d0c2 !important;
+  }
+  #printable-price-list .print-card h3 {
+    color: #1a1a1a;
+  }
+}
