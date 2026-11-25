@@ -3,12 +3,12 @@
 export const SALON_PROFILE = {
   name: "PU Salon & Barbershop",
   tagline: "Premium Beauty & Hair Care Studio",
-  address: "Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading, Jakarta",
+  address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
   phone: "0812-3456-7890",
   email: "halo@pusalon.co.id",
   operatingHours: {
-    monday: { open: "11:00", close: "16:00", lastOrder: "15:00", label: "Senin (11:00 - 16:00)" },
-    regular: { open: "11:00", close: "21:00", lastOrder: "20:00", label: "Selasa - Minggu (11:00 - 21:00)" }
+    monday: { open: "11:00", close: "21:00", lastOrder: "20:00", label: "Senin (11:00 - 21:00)" },
+    regular: { open: "11:00", close: "21:00", lastOrder: "20:00", label: "Senin - Minggu (11:00 - 21:00)" }
   },
   qrisPayload: "00020101021226600016ID.CO.GOPAY.WWW01189360091438901234560215000000000000001510400005204581253033605802ID5920PU SALON BARBERSHOP6007JAKARTA61051424062070703A016304E8A9"
 };
@@ -324,7 +324,7 @@ export const INITIAL_CUSTOMERS = [
     id: "cst-1",
     name: "Dimas Anggara",
     phone: "0812-9988-7711",
-    address: "Apartemen MOI Tower Paris, Kelapa Gading",
+    address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
     birthday: "1994-11-20", // TODAY is his birthday! For birthday promo testing
     tier: "Gold",
     visitCount: 14,
@@ -337,7 +337,7 @@ export const INITIAL_CUSTOMERS = [
     id: "cst-2",
     name: "Clarissa Putri",
     phone: "0818-4433-2211",
-    address: "Jl. Janur Elok IX No. 4, Kelapa Gading",
+    address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
     birthday: "1998-11-28", // Also birthday this month!
     tier: "Gold",
     visitCount: 9,
@@ -350,7 +350,7 @@ export const INITIAL_CUSTOMERS = [
     id: "cst-3",
     name: "Hendro Wijaya",
     phone: "0856-7788-9900",
-    address: "Gading Kirana Barat 3 No. 18",
+    address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
     birthday: "1988-04-15",
     tier: "Silver",
     visitCount: 6,
@@ -363,7 +363,7 @@ export const INITIAL_CUSTOMERS = [
     id: "cst-4",
     name: "Nadya Salsabila",
     phone: "0878-1234-5678",
-    address: "Sunter Icon Blok B No. 22",
+    address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
     birthday: "2001-07-09",
     tier: "Silver",
     visitCount: 5,
@@ -376,7 +376,7 @@ export const INITIAL_CUSTOMERS = [
     id: "cst-5",
     name: "Kevin Sanjaya",
     phone: "0813-5566-7788",
-    address: "Jl. Boulevard Timur Blok Z No. 5",
+    address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
     birthday: "1996-02-18",
     tier: "Standard",
     visitCount: 2,

@@ -8,7 +8,7 @@ Sistem Informasi Manajemen Enterprise Resource Planning (ERP) modern, responsif,
 
 - **Nama Usaha**: PU Salon & Barbershop
 - **Jenis Usaha**: Salon Kecantikan & Barbershop Premium
-- **Lokasi**: Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading, Jakarta
+- **Lokasi**: Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275
 - **Tim Staf (3 Orang)**:
   1. **Budi Santoso** - Senior Barber (Gentlemen Cut, Fade, Beard Sculpting & Hot Towel)
   2. **Siti Rahmawati** - Senior Hair Stylist & Colorist (Balayage, Creambath Tradisional, Hair Spa & Blow)

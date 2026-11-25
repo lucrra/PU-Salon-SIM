@@ -244,7 +244,7 @@ export const BookingModule = () => {
               />
             </div>
             <div className="text-xs text-charcoal-500">
-              Operasional: <span className="font-semibold text-charcoal-800">Senin 11:00-16:00 | Sel-Min 11:00-21:00</span>
+              Operasional: <span className="font-semibold text-charcoal-800">Senin - Minggu 11:00 - 21:00</span>
             </div>
           </div>
 
