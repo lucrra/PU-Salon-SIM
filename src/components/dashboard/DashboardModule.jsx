@@ -139,8 +139,8 @@ export const DashboardModule = () => {
               Selamat datang, <span className="bg-gradient-to-r from-champagne-200 via-gold-300 to-blue-200 bg-clip-text text-transparent">{displayName}</span> ✨
             </h2>
             <p className="text-xs md:text-sm text-white/75 leading-relaxed max-w-lg">
-              Semua modul operasional terhubung: booking, kasir Tunai/QRIS, stok FIFO,
-              CRM pelanggan, hingga laporan laba rugi — dalam satu sistem yang bersih dan mudah.
+              Senang melihat Anda kembali. Semua kebutuhan operasional salon kini ada dalam satu tempat.
+              Mari pastikan semua aktivitas PU Salon berjalan lancar.
             </p>
           </div>
 

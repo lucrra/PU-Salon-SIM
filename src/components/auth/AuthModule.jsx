@@ -55,12 +55,12 @@ export const AuthModule = () => {
 
           <div className="max-w-md space-y-5">
             <span className="chip bg-white/15 text-champagne-100 border border-white/20 backdrop-blur">
-              <Sparkles className="w-3.5 h-3.5" /> SIM Terpadu · Booking · POS · CRM
+              <Sparkles className="w-3.5 h-3.5" /> PU SALON MANAGEMENT SYSTEM
             </span>
             <h1 className="font-display text-4xl font-extrabold leading-tight">
-              Kelola salon Anda dengan{' '}
+              Hari Baru,{' '}
               <span className="bg-gradient-to-r from-champagne-200 via-gold-300 to-blue-200 bg-clip-text text-transparent">
-                elegan & efisien
+                Semangat Baru!
               </span>
             </h1>
             <p className="text-sm text-white/75 leading-relaxed">

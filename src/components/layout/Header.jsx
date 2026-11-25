@@ -101,7 +101,7 @@ export const Header = ({ onOpenMenu }) => {
           {/* Quick POS */}
           {userRole !== 'staff' && (
             <button onClick={() => setActiveTab('pos')} className="hidden sm:inline-flex btn-brand whitespace-nowrap">
-              <PlusCircle className="w-4 h-4" /> <span className="hidden xl:inline">Kasir Baru</span><span className="xl:hidden">Kasir</span>
+              <PlusCircle className="w-4 h-4" /> <span className="hidden xl:inline">Pesanan Baru</span><span className="xl:hidden">Pesanan</span>
             </button>
           )}
 
