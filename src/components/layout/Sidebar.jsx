@@ -68,12 +68,11 @@ export const Sidebar = ({ mobileOpen = false, onClose }) => {
 
   // Operating status
   const now = new Date();
-  const day = now.getDay();
   const currentMins = now.getHours() * 60 + now.getMinutes();
-  const isMonday = day === 1;
+
   const openMins = 11 * 60;
-  const closeMins = isMonday ? 16 * 60 : 21 * 60;
-  const lastOrderMins = isMonday ? 15 * 60 : 20 * 60;
+  const closeMins = 21 * 60;
+  const lastOrderMins = 20 * 60;
   const isOpen = currentMins >= openMins && currentMins <= closeMins;
   const isLastOrderTime = currentMins > lastOrderMins && isOpen;
 
@@ -132,7 +131,7 @@ export const Sidebar = ({ mobileOpen = false, onClose }) => {
             </span>
           </div>
           <p className="text-[10px] text-charcoal-500 leading-snug mt-1.5">
-            {isMonday ? 'Senin · 11:00 — 16:00' : 'Selasa — Minggu · 11:00 — 21:00'}
+            Senin — Minggu · 11:00 — 21:00
           </p>
         </div>
 

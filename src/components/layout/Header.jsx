@@ -109,7 +109,7 @@ export const Header = ({ onOpenMenu }) => {
           <div className="hidden lg:flex items-center gap-2 bg-white/80 pl-3 pr-2 py-2 rounded-2xl border border-ivory-300 w-52 focus-within:ring-4 focus-within:ring-champagne-200/50 focus-within:border-champagne-300 transition">
             <Search className="w-3.5 h-3.5 text-charcoal-400" />
             <input
-              placeholder="Cari cepat…"
+              placeholder="Cari"
               className="bg-transparent text-xs text-charcoal-700 placeholder:text-charcoal-400 outline-none w-full"
             />
             <kbd className="text-[9px] font-bold text-charcoal-400 bg-ivory-100 border border-ivory-300 rounded px-1.5 py-0.5">⌘K</kbd>

@@ -171,34 +171,19 @@ export const AppProvider = ({ children }) => {
 
   // 1. Operating Hours & Schedule Helpers
   const checkOperatingHours = (dateStr, timeStr) => {
-    const date = new Date(dateStr);
-    const day = date.getDay(); // 0: Sunday, 1: Monday, ...
-    const isMonday = day === 1;
-
-    // Time to minutes
+    // Salon buka setiap hari mulai Senin, 11:00 - 21:00 (last order 20:00)
     const [h, m] = timeStr.split(':').map(Number);
     const timeInMins = h * 60 + m;
 
-    if (isMonday) {
-      const open = 11 * 60;
-      const close = 16 * 60;
-      const lastOrder = 15 * 60;
-      if (timeInMins < open || timeInMins > close) {
-        return { valid: false, message: 'Hari Senin jam operasional adalah 11:00 - 16:00 (Last order 15:00)' };
-      }
-      if (timeInMins > lastOrder) {
-        return { valid: false, message: 'Last order untuk hari Senin adalah pukul 15:00' };
-      }
-    } else {
-      const open = 11 * 60;
-      const close = 21 * 60;
-      const lastOrder = 20 * 60;
-      if (timeInMins < open || timeInMins > close) {
-        return { valid: false, message: 'Jam operasional Selasa-Minggu adalah 11:00 - 21:00 (Last order 20:00)' };
-      }
-      if (timeInMins > lastOrder) {
-        return { valid: false, message: 'Last order untuk hari ini adalah pukul 20:00' };
-      }
+    const open = 11 * 60;
+    const close = 21 * 60;
+    const lastOrder = 20 * 60;
+
+    if (timeInMins < open || timeInMins > close) {
+      return { valid: false, message: 'Jam operasional Senin-Minggu adalah 11:00 - 21:00 (Last order 20:00)' };
+    }
+    if (timeInMins > lastOrder) {
+      return { valid: false, message: 'Last order untuk hari ini adalah pukul 20:00' };
     }
     return { valid: true };
   };

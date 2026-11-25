@@ -7,8 +7,8 @@ export const SALON_PROFILE = {
   phone: "0812-3456-7890",
   email: "halo@pusalon.co.id",
   operatingHours: {
-    monday: { open: "11:00", close: "16:00", lastOrder: "15:00", label: "Senin (11:00 - 16:00)" },
-    regular: { open: "11:00", close: "21:00", lastOrder: "20:00", label: "Selasa - Minggu (11:00 - 21:00)" }
+    monday: { open: "11:00", close: "21:00", lastOrder: "20:00", label: "Senin (11:00 - 21:00)" },
+    regular: { open: "11:00", close: "21:00", lastOrder: "20:00", label: "Senin - Minggu (11:00 - 21:00)" }
   },
   qrisPayload: "00020101021226600016ID.CO.GOPAY.WWW01189360091438901234560215000000000000001510400005204581253033605802ID5920PU SALON BARBERSHOP6007JAKARTA61051424062070703A016304E8A9"
 };
