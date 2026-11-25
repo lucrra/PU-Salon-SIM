@@ -2,28 +2,61 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   ShieldCheck,
-  Users,
-  Award,
   CheckCircle2,
   XCircle,
-  Clock,
-  Phone,
-  Percent,
   Scissors,
-  Sparkles,
-  Edit2
+  Edit2,
+  Mail,
+  Phone,
+  Image as ImageIcon,
+  Lock,
+  Trash2,
+  Camera
 } from 'lucide-react';
+
+const initialsOf = (name = '') =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(word => word[0])
+    .join('')
+    .toUpperCase() || 'ST';
+
+const StaffAvatar = ({ staff, className = '', textClassName = 'text-base' }) => {
+  const [failed, setFailed] = useState(false);
+
+  if (!staff?.avatar || failed) {
+    return (
+      <div
+        className={`${className} bg-gradient-to-tr from-charcoal-800 to-charcoal-600 text-ivory-50 flex items-center justify-center font-serif font-bold ${textClassName}`}
+        title={staff?.name || 'Staf'}
+      >
+        {initialsOf(staff?.name)}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={staff.avatar}
+      alt={staff.name}
+      onError={() => setFailed(true)}
+      className={`${className} object-cover`}
+    />
+  );
+};
 
 export const UserManagementModule = () => {
   const {
     staff,
     setStaff,
+    updateStaff,
     userRole,
-    setUserRole,
-    activeStaffId,
-    setActiveStaffId,
     showToast
   } = useApp();
+
+  const isOwner = userRole === 'owner';
 
   const [selectedStaff, setSelectedStaff] = useState(staff[0] || null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,40 +65,62 @@ export const UserManagementModule = () => {
     role: '',
     specialty: '',
     phone: '',
-    commissionRate: 0.15,
+    email: '',
+    avatar: '',
+    commissionRate: 15,
     status: 'available'
   });
 
   const openEditModal = (s) => {
+    if (!isOwner) {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat mengubah data staf.');
+      return;
+    }
     setSelectedStaff(s);
     setEditFormData({
-      name: s.name,
-      role: s.role,
-      specialty: s.specialty,
-      phone: s.phone,
-      commissionRate: s.commissionRate,
-      status: s.status
+      name: s.name || '',
+      role: s.role || '',
+      specialty: s.specialty || '',
+      phone: s.phone || '',
+      email: s.email || '',
+      avatar: s.avatar || '',
+      commissionRate: Math.round((s.commissionRate ?? 0) * 100),
+      status: s.status || 'available'
     });
     setIsEditModalOpen(true);
   };
 
   const handleStatusToggle = (staffId, newStatus) => {
+    if (!isOwner) {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat mengubah status staf.');
+      return;
+    }
     setStaff(prev => prev.map(s => s.id === staffId ? { ...s, status: newStatus } : s));
     showToast('info', 'Status Staf Berubah', `Status diubah menjadi: ${newStatus.toUpperCase()}`);
   };
 
   const handleSaveEdit = (e) => {
     e.preventDefault();
-    if (!selectedStaff) return;
+    if (!selectedStaff || !isOwner) return;
 
-    setStaff(prev => prev.map(s => {
-      if (s.id === selectedStaff.id) {
-        return { ...s, ...editFormData, commissionRate: Number(editFormData.commissionRate) };
-      }
-      return s;
-    }));
+    const name = editFormData.name.trim();
+    const role = editFormData.role.trim();
+    if (!name || !role) {
+      showToast('error', 'Data Belum Lengkap', 'Nama dan jabatan staf wajib diisi.');
+      return;
+    }
 
-    showToast('success', 'Data Staf Disimpan', `Informasi ${editFormData.name} berhasil diperbarui.`);
+    updateStaff(selectedStaff.id, {
+      name,
+      role,
+      specialty: editFormData.specialty.trim(),
+      phone: editFormData.phone.trim(),
+      email: editFormData.email.trim(),
+      avatar: editFormData.avatar.trim(),
+      commissionRate: Math.min(100, Math.max(0, Number(editFormData.commissionRate) || 0)) / 100,
+      status: editFormData.status
+    });
+
     setIsEditModalOpen(false);
   };
 
@@ -83,16 +138,34 @@ export const UserManagementModule = () => {
 
   return (
     <div className="space-y-6">
-      {/* 3 Active Staff Cards */}
+      {/* Staff Profile Cards */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="font-serif font-bold text-lg text-charcoal-900">3 Staf Utama PU Salon & Barbershop</h3>
-            <p className="text-xs text-charcoal-500">Kelola kehadiran, spesialisasi layanan, dan komisi pengerjaan</p>
+            <h3 className="font-serif font-bold text-lg text-charcoal-900">Profil Staf PU Salon & Barbershop</h3>
+            <p className="text-xs text-charcoal-500">
+              Owner dapat mengubah nama, foto profil, kontak, spesialisasi, komisi, dan status kehadiran.
+            </p>
           </div>
+          <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold border w-fit ${
+            isOwner
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-amber-50 text-amber-700 border-amber-200'
+          }`}>
+            {isOwner ? 'Owner • Dapat Mengedit' : 'Mode Lihat • Khusus Owner'}
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {!isOwner && (
+          <div className="mb-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 flex items-start gap-2">
+            <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              Anda masuk sebagai <strong>{userRole}</strong>. Data staf hanya dapat diubah oleh akun Owner.
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
           {staff.map(s => {
             const isAvailable = s.status === 'available';
             const isBusy = s.status === 'busy';
@@ -103,32 +176,51 @@ export const UserManagementModule = () => {
                 className="bg-white rounded-3xl border border-ivory-300/80 shadow-soft p-5 space-y-4 hover:border-champagne-400 transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={s.avatar}
-                        alt={s.name}
-                        className="w-14 h-14 rounded-2xl object-cover border-2 border-champagne-400 shadow-sm"
-                      />
-                      <div>
-                        <h4 className="font-serif font-bold text-base text-charcoal-900">{s.name}</h4>
-                        <div className="text-xs font-semibold text-champagne-800">{s.role}</div>
-                        <div className="text-[10px] text-charcoal-400 mt-0.5">{s.phone}</div>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <StaffAvatar
+                      key={`${s.id}-${s.avatar}`}
+                      staff={s}
+                      className="w-14 h-14 rounded-2xl border-2 border-champagne-400 shadow-sm shrink-0"
+                      textClassName="text-lg"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-serif font-bold text-base text-charcoal-900 leading-tight break-words">{s.name}</h4>
+                      <div className="text-xs font-semibold text-champagne-800 leading-snug mt-0.5">{s.role}</div>
                     </div>
 
-                    <button
-                      onClick={() => openEditModal(s)}
-                      className="p-1.5 text-charcoal-400 hover:text-charcoal-800 hover:bg-ivory-100 rounded-lg"
-                      title="Edit Data Staf"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+                    {isOwner ? (
+                      <button
+                        onClick={() => openEditModal(s)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-champagne-800 bg-champagne-50 border border-champagne-200 hover:bg-champagne-100 shrink-0"
+                        title="Edit profil staf"
+                        aria-label={`Edit profil ${s.name}`}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <span
+                        className="w-8 h-8 flex items-center justify-center text-charcoal-300 shrink-0"
+                        title="Hanya Owner yang dapat mengubah data staf"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 space-y-1.5 text-[11px] text-charcoal-500">
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="w-3 h-3 shrink-0 text-charcoal-300" />
+                      <span className="truncate">{s.phone || 'Nomor belum diisi'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="w-3 h-3 shrink-0 text-charcoal-300" />
+                      <span className="truncate">{s.email || 'Email belum diisi'}</span>
+                    </div>
                   </div>
 
                   <div className="mt-3 p-2.5 bg-ivory-50 rounded-xl border border-ivory-200 text-xs space-y-1">
                     <div className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider">Spesialisasi:</div>
-                    <div className="text-charcoal-700 font-medium leading-relaxed">{s.specialty}</div>
+                    <div className="text-charcoal-700 font-medium leading-relaxed">{s.specialty || 'Belum diisi'}</div>
                   </div>
                 </div>
 
@@ -136,7 +228,7 @@ export const UserManagementModule = () => {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="p-2 bg-ivory-100/60 rounded-xl">
                       <div className="text-[10px] text-charcoal-400 font-semibold">Komisi Layanan:</div>
-                      <div className="font-bold text-charcoal-900 text-sm mt-0.5">{Math.round(s.commissionRate * 100)}%</div>
+                      <div className="font-bold text-charcoal-900 text-sm mt-0.5">{Math.round((s.commissionRate || 0) * 100)}%</div>
                     </div>
                     <div className="p-2 bg-ivory-100/60 rounded-xl">
                       <div className="text-[10px] text-charcoal-400 font-semibold">Tamu Hari Ini:</div>
@@ -148,7 +240,9 @@ export const UserManagementModule = () => {
                   <div className="flex items-center gap-1.5 pt-1">
                     <button
                       onClick={() => handleStatusToggle(s.id, 'available')}
-                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                      disabled={!isOwner}
+                      title={isOwner ? 'Tandai tersedia' : 'Hanya Owner yang dapat mengubah status'}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                         isAvailable
                           ? 'bg-emerald-600 text-white shadow-sm'
                           : 'bg-ivory-100 text-charcoal-600 hover:bg-ivory-200'
@@ -159,7 +253,9 @@ export const UserManagementModule = () => {
                     </button>
                     <button
                       onClick={() => handleStatusToggle(s.id, 'busy')}
-                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                      disabled={!isOwner}
+                      title={isOwner ? 'Tandai sedang melayani' : 'Hanya Owner yang dapat mengubah status'}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                         isBusy
                           ? 'bg-blue-600 text-white shadow-sm'
                           : 'bg-ivory-100 text-charcoal-600 hover:bg-ivory-200'
@@ -170,7 +266,9 @@ export const UserManagementModule = () => {
                     </button>
                     <button
                       onClick={() => handleStatusToggle(s.id, 'off')}
-                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                      disabled={!isOwner}
+                      title={isOwner ? 'Tandai libur' : 'Hanya Owner yang dapat mengubah status'}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                         s.status === 'off'
                           ? 'bg-rose-600 text-white shadow-sm'
                           : 'bg-ivory-100 text-charcoal-600 hover:bg-ivory-200'
@@ -255,34 +353,82 @@ export const UserManagementModule = () => {
         </div>
       </div>
 
-      {/* Edit Staff Modal */}
+      {/* Edit Staff Modal — Owner only */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-charcoal-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-luxury border border-ivory-300 p-6 space-y-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-luxury border border-ivory-300 p-6 space-y-4 max-h-[95vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-ivory-200">
-              <h3 className="font-serif font-bold text-base text-charcoal-900">Edit Profil Staf Salon</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-charcoal-400 hover:text-charcoal-700">✕</button>
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal-900">Edit Profil Staf Salon</h3>
+                <p className="text-[10px] text-charcoal-400">Perubahan langsung tampil di Kasir, Booking, dan Dashboard.</p>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-charcoal-400 hover:text-charcoal-700 p-1"
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
+              {/* Foto Profil */}
+              <div className="p-3 rounded-2xl bg-ivory-50 border border-ivory-200 flex items-center gap-3">
+                <StaffAvatar
+                  key={editFormData.avatar || 'empty'}
+                  staff={{ name: editFormData.name || selectedStaff?.name, avatar: editFormData.avatar }}
+                  className="w-16 h-16 rounded-2xl border-2 border-champagne-300 shadow-sm shrink-0"
+                  textClassName="text-xl"
+                />
+                <div className="flex-1 min-w-0">
+                  <label className="block font-bold text-charcoal-700 mb-1 flex items-center gap-1">
+                    <ImageIcon className="w-3.5 h-3.5 text-champagne-600" />
+                    <span>URL Foto Profil</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={editFormData.avatar}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, avatar: e.target.value }))}
+                    placeholder="https://contoh.com/foto-staf.jpg"
+                    className="w-full px-3 py-2 bg-white border border-ivory-300 rounded-xl"
+                  />
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <span className="text-[10px] text-charcoal-400 flex items-center gap-1">
+                      <Camera className="w-3 h-3" /> Kosongkan untuk memakai inisial nama.
+                    </span>
+                    {editFormData.avatar && (
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData(prev => ({ ...prev, avatar: '' }))}
+                        className="text-[10px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 shrink-0"
+                      >
+                        <Trash2 className="w-3 h-3" /> Hapus
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <label className="block font-bold text-charcoal-700 mb-1">Nama Staf</label>
+                <label className="block font-bold text-charcoal-700 mb-1">Nama Profil / Nama Lengkap *</label>
                 <input
                   type="text"
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Contoh: Budi Santoso"
                   className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-charcoal-700 mb-1">Jabatan / Role</label>
+                <label className="block font-bold text-charcoal-700 mb-1">Jabatan / Role *</label>
                 <input
                   type="text"
                   required
                   value={editFormData.role}
                   onChange={(e) => setEditFormData(prev => ({ ...prev, role: e.target.value }))}
+                  placeholder="Contoh: Senior Barber"
                   className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
                 />
               </div>
@@ -293,39 +439,74 @@ export const UserManagementModule = () => {
                   type="text"
                   value={editFormData.specialty}
                   onChange={(e) => setEditFormData(prev => ({ ...prev, specialty: e.target.value }))}
+                  placeholder="Contoh: Gentlemen Cut, Fade & Beard"
                   className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-charcoal-700 mb-1">No. WhatsApp / HP</label>
                   <input
                     type="text"
                     value={editFormData.phone}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="0812-xxxx-xxxx"
                     className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-charcoal-700 mb-1">Rate Komisi (0.15 = 15%)</label>
+                  <label className="block font-bold text-charcoal-700 mb-1 flex items-center gap-1">
+                    <Mail className="w-3.5 h-3.5 text-champagne-600" />
+                    <span>Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="nama@pusalon.co.id"
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Komisi Layanan (%)</label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="1"
                     min="0"
-                    max="1"
+                    max="100"
                     value={editFormData.commissionRate}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, commissionRate: e.target.value }))}
                     className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl font-bold"
                   />
                 </div>
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Status Kehadiran</label>
+                  <select
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl font-medium"
+                  >
+                    <option value="available">Tersedia</option>
+                    <option value="busy">Melayani</option>
+                    <option value="off">Libur</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[10px] text-blue-800 flex items-start gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>Hanya Owner yang dapat menyimpan perubahan profil staf.</span>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-ivory-200">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 font-semibold text-charcoal-500"
+                  className="px-4 py-2 font-semibold text-charcoal-500 hover:text-charcoal-700"
                 >
                   Batal
                 </button>

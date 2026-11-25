@@ -219,6 +219,18 @@ export const AppProvider = ({ children }) => {
     return { available: true };
   };
 
+  // Owner: perbarui profil staf (nama, foto, kontak, komisi, status)
+  const updateStaff = (staffId, updates) => {
+    setStaff(prev => prev.map(s => {
+      if (s.id !== staffId) return s;
+      const nextCommission = updates.commissionRate !== undefined
+        ? Math.min(1, Math.max(0, Number(updates.commissionRate) || 0))
+        : s.commissionRate;
+      return { ...s, ...updates, commissionRate: nextCommission };
+    }));
+    showToast('success', 'Profil Staf Diperbarui', `Data ${updates.name || 'staf'} berhasil disimpan.`);
+  };
+
   // 2. Appointment CRUD & Workflows
   const createAppointment = (appointmentData) => {
     // Check operating hours
@@ -1080,6 +1092,7 @@ export const AppProvider = ({ children }) => {
         salonProfile: SALON_PROFILE,
         staff,
         setStaff,
+        updateStaff,
         services,
         setServices,
         products,

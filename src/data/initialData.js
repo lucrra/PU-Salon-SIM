@@ -20,6 +20,7 @@ export const INITIAL_STAFF = [
     role: "Senior Barber",
     specialty: "Gentlemen Cut, Fade, Beard Sculpting & Hot Towel",
     phone: "0813-8899-1122",
+    email: "budi@pusalon.co.id",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     status: "available", // available, busy, off
     commissionRate: 0.15,
@@ -32,6 +33,7 @@ export const INITIAL_STAFF = [
     role: "Senior Hair Stylist & Colorist",
     specialty: "Balayage, Creambath Tradisional, Hair Spa & Blow Dry",
     phone: "0821-4455-7788",
+    email: "siti@pusalon.co.id",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
     status: "available",
     commissionRate: 0.15,
@@ -44,6 +46,7 @@ export const INITIAL_STAFF = [
     role: "All-Round Barber & Stylist",
     specialty: "Modern Cuts, Scalp Therapy & Reflexology",
     phone: "0857-1122-3344",
+    email: "rian@pusalon.co.id",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
     status: "available",
     commissionRate: 0.12,
