@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   SALON_PROFILE,
   INITIAL_STAFF,
@@ -20,6 +20,7 @@ import {
   INITIAL_STOCK_ADJUSTMENTS,
   INITIAL_PURCHASE_RETURNS
 } from '../data/initialData';
+import { getCustomerPoints, pointsForAmount, resolveTier } from '../utils/loyalty';
 
 const AppContext = createContext();
 
@@ -50,6 +51,7 @@ export const AppProvider = ({ children }) => {
   // SCM state
   const [warehouses, setWarehouses] = useState(() => loadState('warehouses', INITIAL_WAREHOUSES));
   const [warehouseStock, setWarehouseStock] = useState(() => loadState('warehouseStock', INITIAL_WAREHOUSE_STOCK));
+  const warehouseStockRef = useRef(warehouseStock);
   const [requisitions, setRequisitions] = useState(() => loadState('requisitions', INITIAL_REQUISITIONS));
   const [goodsReceipts, setGoodsReceipts] = useState(() => loadState('goodsReceipts', INITIAL_GOODS_RECEIPTS));
   const [stockTransfers, setStockTransfers] = useState(() => loadState('stockTransfers', INITIAL_STOCK_TRANSFERS));
@@ -93,6 +95,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('pu_salon_movements', JSON.stringify(movements)); }, [movements]);
   useEffect(() => { localStorage.setItem('pu_salon_warehouses', JSON.stringify(warehouses)); }, [warehouses]);
   useEffect(() => { localStorage.setItem('pu_salon_warehouseStock', JSON.stringify(warehouseStock)); }, [warehouseStock]);
+  useEffect(() => { warehouseStockRef.current = warehouseStock; }, [warehouseStock]);
   useEffect(() => { localStorage.setItem('pu_salon_requisitions', JSON.stringify(requisitions)); }, [requisitions]);
   useEffect(() => { localStorage.setItem('pu_salon_goodsReceipts', JSON.stringify(goodsReceipts)); }, [goodsReceipts]);
   useEffect(() => { localStorage.setItem('pu_salon_stockTransfers', JSON.stringify(stockTransfers)); }, [stockTransfers]);
@@ -259,30 +262,42 @@ export const AppProvider = ({ children }) => {
     showToast('info', 'Lanjut ke Kasir POS', `Data janji temu ${apt.customerName} dimasukkan ke keranjang kasir.`);
   };
 
-  // 2b. Warehouse Stock Engine — alokasi & pemindahan stok antar gudang
+  // 2b. Warehouse Stock Engine — alokasi & pemindahan stok antar gudang.
+  // Mengembalikan detail alokasi agar mutasi stok SCM mencatat gudang asal.
   const deductWarehouseStock = (productId, qty) => {
     const product = products.find(p => p.id === productId);
     const order = product && product.type === 'retail'
       ? ['wh-retail', 'wh-main', 'wh-barber']
       : ['wh-barber', 'wh-main', 'wh-retail'];
 
-    setWarehouseStock(prev => {
-      let remaining = qty;
-      const next = prev.map(row => ({ ...row }));
-      for (const wid of order) {
-        if (remaining <= 0) break;
-        const row = next.find(r => r.warehouseId === wid && r.productId === productId);
-        if (!row || row.qty <= 0) continue;
-        const take = Math.min(row.qty, remaining);
-        row.qty -= take;
-        remaining -= take;
-      }
-      return next;
-    });
+    const source = warehouseStockRef.current || warehouseStock;
+    const allocations = [];
+    let remaining = qty;
+
+    for (const wid of order) {
+      if (remaining <= 0) break;
+      const row = source.find(r => r.warehouseId === wid && r.productId === productId);
+      if (!row || row.qty <= 0) continue;
+      const take = Math.min(row.qty, remaining);
+      allocations.push({ warehouseId: wid, qty: take });
+      remaining -= take;
+    }
+
+    if (allocations.length > 0) {
+      const next = source.map(row => {
+        const alloc = allocations.find(a => a.warehouseId === row.warehouseId);
+        if (!alloc || row.productId !== productId) return row;
+        return { ...row, qty: Math.max(0, row.qty - alloc.qty) };
+      });
+      warehouseStockRef.current = next;
+      setWarehouseStock(next);
+    }
+
+    return { allocations, unallocated: remaining };
   };
 
   // 3. FIFO Inventory Deduction Engine
-  const deductStockFIFO = (productId, qtyToDeduct, reference = 'POS') => {
+  const deductStockFIFO = (productId, qtyToDeduct, reference = 'POS', meta = {}) => {
     let remainingToDeduct = qtyToDeduct;
 
     // Find and sort product batches FIFO (earliest dateIn first)
@@ -321,23 +336,51 @@ export const AppProvider = ({ children }) => {
       return prod;
     }));
 
-    // Update allocation per warehouse
-    deductWarehouseStock(productId, qtyToDeduct);
+    // Update allocation per warehouse & capture the source warehouse(s)
+    const { allocations, unallocated } = deductWarehouseStock(productId, qtyToDeduct);
 
-    // Log movement
+    // Log movement(s) — satu baris per gudang asal agar audit SCM akurat
     const product = products.find(p => p.id === productId);
-    const newMovement = {
-      id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      date: new Date().toISOString().slice(0, 10),
+    const baseMovement = {
+      date: new Date().toISOString(),
       productId,
       productName: product ? product.name : 'Unknown Product',
       type: 'out',
-      qty: qtyToDeduct,
       reference,
-      notes: `Pengurangan stok otomatis (${reference})`
+      channel: meta.channel || 'manual',
+      invoiceNo: meta.invoiceNo || null,
+      customerName: meta.customerName || null,
+      staffName: meta.staffName || null,
+      sourceId: meta.sourceId || null,
+      notes: meta.notes || `Pengurangan stok otomatis (${reference})`
     };
 
-    setMovements(prev => [newMovement, ...prev]);
+    const movementRows = allocations.map(alloc => ({
+      ...baseMovement,
+      id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      qty: alloc.qty,
+      warehouseId: alloc.warehouseId
+    }));
+
+    if (unallocated > 0) {
+      movementRows.push({
+        ...baseMovement,
+        id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        qty: unallocated,
+        warehouseId: meta.warehouseId || null
+      });
+    }
+
+    if (movementRows.length === 0) {
+      movementRows.push({
+        ...baseMovement,
+        id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        qty: qtyToDeduct,
+        warehouseId: meta.warehouseId || null
+      });
+    }
+
+    setMovements(prev => [...movementRows, ...prev]);
   };
 
   // 4. POS Transaction Checkout Engine
@@ -361,6 +404,15 @@ export const AppProvider = ({ children }) => {
     const nowIso = new Date().toISOString();
     const todayDate = nowIso.slice(0, 10);
 
+    // Ringkasan integrasi CRM: poin & potensi kenaikan tier
+    const existingCustomer = customerId ? customers.find(c => c.id === customerId) : null;
+    const pointsEarned = existingCustomer ? pointsForAmount(total) : 0;
+    const tierBefore = existingCustomer ? (existingCustomer.tier || 'Standard') : null;
+    const tierAfter = existingCustomer
+      ? resolveTier((existingCustomer.totalSpent || 0) + total, tierBefore)
+      : null;
+    const tierUpgraded = Boolean(tierBefore && tierAfter && tierAfter !== tierBefore);
+
     const newTransaction = {
       id: `trx-${Date.now()}`,
       invoiceNo,
@@ -378,21 +430,39 @@ export const AppProvider = ({ children }) => {
       paymentStatus: 'paid',
       cashGiven: Number(cashGiven) || total,
       change: Number(change) || 0,
+      pointsEarned,
+      tierBefore,
+      tierAfter,
+      tierUpgraded,
       notes: notes || 'Transaksi kasir selesai'
     };
 
     // 1. Add Transaction
     setTransactions(prev => [newTransaction, ...prev]);
 
-    // 2. Reduce Stock for Retail Items & Service Formula Materials
+    // 2. Reduce Stock for Retail Items & Service Formula Materials (ERP -> SCM)
     items.forEach(item => {
       if (item.type === 'product') {
-        deductStockFIFO(item.id, item.qty, invoiceNo);
+        deductStockFIFO(item.id, item.qty, invoiceNo, {
+          channel: 'pos',
+          invoiceNo,
+          customerName: newTransaction.customerName,
+          staffName,
+          sourceId: newTransaction.id,
+          notes: `Penjualan POS ${invoiceNo} • ${newTransaction.customerName}`
+        });
       } else if (item.type === 'service') {
         const service = services.find(s => s.id === item.id);
         if (service && service.materials) {
           service.materials.forEach(mat => {
-            deductStockFIFO(mat.productId, mat.qty * item.qty, `${invoiceNo} (${service.name})`);
+            deductStockFIFO(mat.productId, mat.qty * item.qty, `${invoiceNo} (${service.name})`, {
+              channel: 'pos',
+              invoiceNo,
+              customerName: newTransaction.customerName,
+              staffName,
+              sourceId: newTransaction.id,
+              notes: `Pemakaian bahan ${service.name} • ${invoiceNo}`
+            });
           });
         }
       }
@@ -411,18 +481,22 @@ export const AppProvider = ({ children }) => {
     };
     setFinancialRecords(prev => [newFinanceRecord, ...prev]);
 
-    // 4. Update Customer History & Visit Count in CRM
+    // 4. Update Customer History, Loyalty Points & Auto Tier in CRM
     if (customerId) {
       setCustomers(prev => prev.map(c => {
-        if (c.id === customerId) {
-          return {
-            ...c,
-            visitCount: (c.visitCount || 0) + 1,
-            totalSpent: (c.totalSpent || 0) + total,
-            lastVisit: todayDate
-          };
-        }
-        return c;
+        if (c.id !== customerId) return c;
+        const nextSpent = (c.totalSpent || 0) + total;
+        const currentTier = c.tier || 'Standard';
+        return {
+          ...c,
+          visitCount: (c.visitCount || 0) + 1,
+          totalSpent: nextSpent,
+          loyaltyPoints: getCustomerPoints(c) + pointsEarned,
+          tier: resolveTier(nextSpent, currentTier),
+          lastVisit: todayDate,
+          lastTransactionId: newTransaction.id,
+          lastInvoiceNo: invoiceNo
+        };
       }));
     }
 
@@ -438,7 +512,10 @@ export const AppProvider = ({ children }) => {
 
     // 6. Set receipt modal
     setActiveReceipt(newTransaction);
-    showToast('success', 'Transaksi Selesai!', `Struk #${invoiceNo} berhasil diproses via ${paymentMethod.toUpperCase()}`);
+    const loyaltyNote = customerId
+      ? ` • +${pointsEarned} poin CRM${tierUpgraded ? ` • Naik ke ${tierAfter}` : ''}`
+      : '';
+    showToast('success', 'Transaksi Selesai!', `Struk #${invoiceNo} berhasil diproses via ${paymentMethod.toUpperCase()}${loyaltyNote}`);
     return newTransaction;
   };
 
@@ -941,8 +1018,11 @@ export const AppProvider = ({ children }) => {
       id: `cst-${Date.now()}`,
       visitCount: 0,
       totalSpent: 0,
-      tier: 'Standard',
-      lastVisit: null
+      loyaltyPoints: 0,
+      tier: customerData.tier || 'Standard',
+      lastVisit: null,
+      lastTransactionId: null,
+      lastInvoiceNo: null
     };
     setCustomers(prev => [newCust, ...prev]);
     showToast('success', 'Pelanggan Baru', `Data ${newCust.name} berhasil disimpan.`);

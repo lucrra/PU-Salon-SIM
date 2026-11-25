@@ -673,8 +673,16 @@ export const SCMModule = () => {
                         {mov.type === 'in' ? <ArrowDownRight className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-bold text-charcoal-800 truncate">{mov.productName}</div>
+                        <div className="text-[11px] font-bold text-charcoal-800 flex items-center gap-1.5 min-w-0">
+                          <span className="truncate">{mov.productName}</span>
+                          {mov.channel === 'pos' && (
+                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[8px] font-bold uppercase shrink-0">
+                              POS
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[10px] text-charcoal-500 truncate">
+                          {mov.channel === 'pos' && mov.invoiceNo ? `${mov.invoiceNo} • ` : ''}
                           {warehouseName(mov.warehouseId)} • {fmtDate(mov.date)}
                         </div>
                       </div>

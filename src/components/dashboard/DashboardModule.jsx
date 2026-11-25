@@ -10,7 +10,8 @@ import {
   Clock,
   Sparkles,
   Scissors,
-  Truck
+  Truck,
+  ArrowRight
 } from 'lucide-react';
 
 const rupiahShort = (n) => {
@@ -78,6 +79,15 @@ export const DashboardModule = () => {
     month: 'long',
     year: 'numeric'
   });
+
+  // Alur integrasi lintas modul (disaring sesuai hak akses)
+  const integrationSteps = [
+    { id: 'pos', label: 'POS / ERP', roles: ['owner', 'admin'] },
+    { id: 'crm', label: 'CRM & Poin', roles: ['owner', 'admin'] },
+    { id: 'inventory', label: 'Stok FIFO', roles: ['owner', 'admin'] },
+    { id: 'scm', label: 'Gudang SCM', roles: ['owner', 'admin'] },
+    { id: 'finance', label: 'Keuangan', roles: ['owner'] }
+  ].filter(step => step.roles.includes(userRole));
 
   // Low stock products
   const lowStockProducts = products.filter(p => p.currentStock <= p.minStock);
@@ -148,6 +158,34 @@ export const DashboardModule = () => {
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Alur Integrasi Otomatis: POS/ERP -> CRM -> SCM -> Keuangan */}
+      <div className="bg-white px-5 py-4 rounded-2xl border border-ivory-300/80 shadow-soft flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-charcoal-900">Alur Integrasi Otomatis</div>
+            <div className="text-[10px] text-charcoal-500">
+              Satu transaksi kasir langsung memperbarui poin CRM, stok gudang, dan pembukuan.
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {integrationSteps.map((step, idx) => (
+            <React.Fragment key={step.id}>
+              {idx > 0 && <ArrowRight className="w-3 h-3 text-charcoal-300 shrink-0" />}
+              <button
+                onClick={() => setActiveTab(step.id)}
+                className="px-2.5 py-1.5 rounded-lg bg-ivory-100 hover:bg-champagne-50 border border-ivory-200 hover:border-champagne-300 text-[10px] font-bold text-charcoal-700 transition-colors"
+              >
+                {step.label}
+              </button>
+            </React.Fragment>
+          ))}
         </div>
       </div>
 

@@ -22,8 +22,9 @@ export const ReceiptModal = () => {
       `\n\nSubtotal: Rp ${activeReceipt.subtotal.toLocaleString('id-ID')}\n` +
       (activeReceipt.discount > 0 ? `Diskon (${activeReceipt.discountReason}): -Rp ${activeReceipt.discount.toLocaleString('id-ID')}\n` : '') +
       `*TOTAL: Rp ${activeReceipt.total.toLocaleString('id-ID')}*\n` +
-      `Metode Bayar: ${activeReceipt.paymentMethod.toUpperCase()} (LUNAS)\n\n` +
-      `Terima kasih atas kunjungan Anda di PU Salon & Barbershop!`;
+      `Metode Bayar: ${activeReceipt.paymentMethod.toUpperCase()} (LUNAS)\n` +
+      (activeReceipt.customerId ? `Poin CRM: +${activeReceipt.pointsEarned || 0} poin${activeReceipt.tierUpgraded ? ` (Naik ke ${activeReceipt.tierAfter})` : ''}\n` : '') +
+      `\nTerima kasih atas kunjungan Anda di PU Salon & Barbershop!`;
 
     navigator.clipboard.writeText(text);
     alert('Teks nota pembayaran telah disalin ke clipboard! Siap dikirim ke WhatsApp pelanggan.');
@@ -127,6 +128,27 @@ export const ReceiptModal = () => {
               </>
             )}
           </div>
+
+          {activeReceipt.customerId && (
+            <>
+              <div className="border-b border-dashed border-charcoal-300 my-2"></div>
+              <div className="text-[10px] space-y-0.5">
+                <div className="flex justify-between font-bold text-charcoal-800">
+                  <span>Poin CRM Diperoleh:</span>
+                  <span>+{activeReceipt.pointsEarned || 0} poin</span>
+                </div>
+                <div className="flex justify-between text-charcoal-600">
+                  <span>Status Member:</span>
+                  <span className="font-bold">{activeReceipt.tierAfter || activeReceipt.tierBefore}</span>
+                </div>
+                {activeReceipt.tierUpgraded && (
+                  <div className="text-center font-bold text-champagne-700 pt-1">
+                    Selamat! Tier naik ke {activeReceipt.tierAfter}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           <div className="border-b border-dashed border-charcoal-300 my-2"></div>
 

@@ -329,6 +329,7 @@ export const INITIAL_CUSTOMERS = [
     tier: "Gold",
     visitCount: 14,
     totalSpent: 1250000,
+    loyaltyPoints: 125,
     lastVisit: "2026-11-05",
     notes: "Potongan langganan: Low taper fade, selalu pakai pomade suavecito."
   },
@@ -341,6 +342,7 @@ export const INITIAL_CUSTOMERS = [
     tier: "Gold",
     visitCount: 9,
     totalSpent: 2100000,
+    loyaltyPoints: 210,
     lastVisit: "2026-11-12",
     notes: "Suka Creambath Ginseng dan Blow bervolume natural."
   },
@@ -353,6 +355,7 @@ export const INITIAL_CUSTOMERS = [
     tier: "Silver",
     visitCount: 6,
     totalSpent: 520000,
+    loyaltyPoints: 52,
     lastVisit: "2026-10-28",
     notes: "Potong rapi formal, pencukuran jenggot bersih."
   },
@@ -365,6 +368,7 @@ export const INITIAL_CUSTOMERS = [
     tier: "Silver",
     visitCount: 5,
     totalSpent: 890000,
+    loyaltyPoints: 89,
     lastVisit: "2026-11-01",
     notes: "Pernah coloring balayage ash brown, treatment rutin hair spa."
   },
@@ -377,6 +381,7 @@ export const INITIAL_CUSTOMERS = [
     tier: "Standard",
     visitCount: 2,
     totalSpent: 150000,
+    loyaltyPoints: 15,
     lastVisit: "2026-11-10",
     notes: "Baru coba barbershop, langganan potongan Budi."
   }

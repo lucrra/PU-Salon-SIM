@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getCustomerPoints, getTierProgress } from '../../utils/loyalty';
 import {
   Users,
   Search,
@@ -9,6 +10,7 @@ import {
   Phone,
   MapPin,
   Award,
+  Crown,
   Clock,
   History,
   ShoppingBag,
@@ -31,6 +33,14 @@ export const CRMModule = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [tierFilter, setTierFilter] = useState('all');
   const [selectedCustomer, setSelectedCustomer] = useState(customers[0] || null);
+
+  // Sinkronkan pelanggan terpilih agar poin, tier, dan riwayat langsung update
+  // setelah transaksi POS diproses di modul lain.
+  useEffect(() => {
+    if (!selectedCustomer) return;
+    const latest = customers.find(c => c.id === selectedCustomer.id);
+    if (latest && latest !== selectedCustomer) setSelectedCustomer(latest);
+  }, [customers, selectedCustomer]);
 
   // Add/Edit Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,6 +108,10 @@ export const CRMModule = () => {
   // Get treatment history of selected customer
   const customerTransactions = transactions.filter(t => t.customerId === selectedCustomer?.id);
   const customerAppointments = appointments.filter(a => a.customerId === selectedCustomer?.id);
+  const selectedPoints = selectedCustomer ? getCustomerPoints(selectedCustomer) : 0;
+  const tierProgress = selectedCustomer
+    ? getTierProgress(selectedCustomer.totalSpent, selectedCustomer.tier)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -230,6 +244,10 @@ export const CRMModule = () => {
                         Rp {c.totalSpent.toLocaleString('id-ID')}
                       </div>
                       <div className="text-[10px] text-charcoal-400">Total Belanja</div>
+                      <div className="text-[10px] font-bold text-amber-600 flex items-center justify-end gap-0.5">
+                        <Award className="w-2.5 h-2.5" />
+                        {getCustomerPoints(c).toLocaleString('id-ID')} poin
+                      </div>
                     </div>
                   </div>
                 );
@@ -283,6 +301,63 @@ export const CRMModule = () => {
                 <div className="p-3 bg-ivory-50 rounded-xl border border-ivory-200 text-charcoal-700 text-[11px]">
                   <span className="font-bold text-charcoal-900 block mb-0.5">Catatan Preferensi / Treatment:</span>
                   {selectedCustomer.notes || 'Belum ada catatan khusus.'}
+                </div>
+              </div>
+
+              {/* Loyalty Points & Tier Progress (terhubung otomatis ke POS) */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-charcoal-900 via-charcoal-800 to-charcoal-800 text-ivory-50 space-y-3 shadow-soft">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-champagne-300">
+                    <Crown className="w-3.5 h-3.5" />
+                    <span>Loyalty Member</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-champagne-500/20 text-champagne-200 text-[10px] font-bold border border-champagne-400/30">
+                    {selectedCustomer.tier}
+                  </span>
+                </div>
+
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <div className="text-2xl font-serif font-bold leading-none">
+                      {selectedPoints.toLocaleString('id-ID')}
+                      <span className="text-xs font-sans font-semibold text-charcoal-300 ml-1">poin</span>
+                    </div>
+                    <div className="text-[10px] text-charcoal-300 mt-1">
+                      Senilai Rp {(selectedPoints * 10000).toLocaleString('id-ID')} belanja
+                    </div>
+                  </div>
+                  <div className="text-right text-[10px] text-charcoal-300">
+                    <div>Total belanja</div>
+                    <div className="text-xs font-bold text-champagne-200">
+                      Rp {selectedCustomer.totalSpent.toLocaleString('id-ID')}
+                    </div>
+                  </div>
+                </div>
+
+                {tierProgress?.nextTier ? (
+                  <div className="space-y-1.5">
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-champagne-500 to-gold-400 transition-all duration-500"
+                        style={{ width: `${tierProgress.percent}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-charcoal-300">
+                      <span>{tierProgress.percent.toFixed(0)}% menuju {tierProgress.nextTier}</span>
+                      <span>Kurang Rp {tierProgress.remaining.toLocaleString('id-ID')}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-[10px] font-semibold text-champagne-200">
+                    Tier tertinggi • diskon 10% otomatis diterapkan di kasir
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2 text-[10px] text-charcoal-300">
+                  <span>Transaksi terakhir</span>
+                  <span className="font-mono font-bold text-ivory-100">
+                    {selectedCustomer.lastInvoiceNo || (customerTransactions[0]?.invoiceNo ?? '—')}
+                  </span>
                 </div>
               </div>
 
