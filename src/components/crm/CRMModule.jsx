@@ -226,8 +226,8 @@ export const CRMModule = () => {
                             {c.tier}
                           </span>
                           {bdayStatus.isThisMonth && (
-                            <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                              <Cake className="w-2.5 h-2.5" /> Ultah
+                            <span className="flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                              <Cake className="w-2.5 h-2.5" /> {bdayStatus.isToday ? 'Ultah hari ini' : 'Ultah bulan ini'}
                             </span>
                           )}
                         </div>
@@ -288,6 +288,15 @@ export const CRMModule = () => {
 
               {/* Detail Info & Notes */}
               <div className="space-y-2 text-xs">
+                {getCustomerBirthdayStatus(selectedCustomer.birthday).isThisMonth && (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                    <div className="flex items-center gap-2 font-bold text-[11px]">
+                      <Cake className="w-4 h-4" />
+                      {getCustomerBirthdayStatus(selectedCustomer.birthday).isToday ? 'Ulang tahun pelanggan hari ini!' : 'Pelanggan berulang tahun bulan ini'}
+                    </div>
+                    <p className="text-[10px] mt-1">Promo ulang tahun 15% siap ditawarkan. Pastikan tanggal lahir dan persetujuan pelanggan sudah benar sebelum menerapkan diskon di kasir.</p>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-charcoal-600">
                   <MapPin className="w-3.5 h-3.5 text-champagne-600 shrink-0" />
                   <span>{selectedCustomer.address || 'Alamat belum diisi'}</span>
