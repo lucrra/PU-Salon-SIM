@@ -38,7 +38,7 @@ export const AuthModule = () => {
       {/* Left — visual */}
       <div className="relative hidden lg:block overflow-hidden">
         <img src={LOGIN_IMAGE} alt="PU Salon" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/90 via-charcoal-900/70 to-charcoal-950/55" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/95 via-charcoal-900/80 to-charcoal-950/65" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,76,135,.42),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(38,190,130,.34),transparent_45%)]" />
 
         <div className="relative z-10 h-full flex flex-col justify-between p-12 text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">
