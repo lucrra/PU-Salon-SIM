@@ -1092,7 +1092,12 @@ export const AppProvider = ({ children }) => {
   // Helper: check if a customer has birthday today or this month
   const getCustomerBirthdayStatus = (birthdayStr) => {
     if (!birthdayStr) return { isToday: false, isThisMonth: false };
-    const bday = new Date(birthdayStr);
+    // Parse YYYY-MM-DD as a local calendar date; Date(string) would shift the day in WIB.
+    const parts = String(birthdayStr).split('-').map(Number);
+    const bday = parts.length === 3 && parts.every(Number.isFinite)
+      ? new Date(parts[0], parts[1] - 1, parts[2])
+      : new Date(birthdayStr);
+    if (Number.isNaN(bday.getTime())) return { isToday: false, isThisMonth: false };
     const today = new Date();
     const isThisMonth = bday.getMonth() === today.getMonth();
     const isToday = isThisMonth && bday.getDate() === today.getDate();
