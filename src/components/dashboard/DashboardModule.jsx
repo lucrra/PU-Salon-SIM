@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   ShoppingBag,
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   ArrowUpRight,
   Sparkles,
@@ -14,7 +15,12 @@ import {
   BookOpen,
   ArrowRight,
   Star,
-  Clock
+  Clock,
+  Lightbulb,
+  Zap,
+  Cake,
+  Package,
+  Award
 } from 'lucide-react';
 import { HERO_IMAGE, PROMO_IMAGES, formatIDR } from '../../data/priceList';
 
@@ -65,7 +71,126 @@ export const DashboardModule = () => {
     return { date: dStr, label: days[d.getDay()], dayNum: d.getDate(), total: dayTotal };
   });
 
-  const maxDayRevenue = Math.max(...chartDays.map(d => d.total), 500000);
+  // ===== Prediksi & Rekomendasi (regresi linear sederhana 7 hari) =====
+  const actualWeekly = chartDays.reduce((sum, d) => sum + d.total, 0);
+  const series = chartDays.map(d => d.total);
+  const nDays = series.length;
+  const meanX = (nDays - 1) / 2;
+  const meanY = series.reduce((a, b) => a + b, 0) / nDays;
+
+  let regNum = 0;
+  let regDen = 0;
+  series.forEach((y, x) => {
+    regNum += (x - meanX) * (y - meanY);
+    regDen += (x - meanX) ** 2;
+  });
+  const slope = regDen === 0 ? 0 : regNum / regDen;
+  const intercept = meanY - slope * meanX;
+
+  const forecastDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i + 1);
+    return {
+      date: d.toISOString().slice(0, 10),
+      label: days[d.getDay()],
+      dayNum: d.getDate(),
+      total: Math.max(0, Math.round(intercept + slope * (nDays + i))),
+      isForecast: true
+    };
+  });
+
+  const chartSeries = [...chartDays, ...forecastDays];
+  const maxChartRevenue = Math.max(...chartSeries.map(d => d.total), 500000);
+  const predictedWeekly = forecastDays.reduce((sum, d) => sum + d.total, 0);
+  const growthPct = actualWeekly > 0 ? ((predictedWeekly - actualWeekly) / actualWeekly) * 100 : 0;
+  const avgDaily = Math.round((actualWeekly + predictedWeekly) / 14);
+  const monthlyProjection = Math.round((predictedWeekly / 7) * 30);
+  const isGrowing = growthPct >= 0;
+
+  const peakDay = chartDays.reduce((a, b) => (b.total > a.total ? b : a), chartDays[0]);
+  const slowDay = chartDays.reduce((a, b) => (b.total < a.total ? b : a), chartDays[0]);
+
+  const birthdayThisMonth = customers.filter(c => {
+    if (!c.birthday) return false;
+    return new Date(c.birthday).getMonth() === new Date().getMonth();
+  }).length;
+
+  const topService = (() => {
+    const map = {};
+    transactions.forEach(t =>
+      (t.items || []).forEach(i => {
+        if (i.type !== 'service') return;
+        map[i.name] = (map[i.name] || 0) + i.price * i.qty;
+      })
+    );
+    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+    return entries.length ? { name: entries[0][0], revenue: entries[0][1] } : null;
+  })();
+
+  const recommendations = [
+    {
+      icon: isGrowing ? TrendingUp : TrendingDown,
+      title: isGrowing
+        ? `Tren naik ${Math.abs(growthPct).toFixed(1)}% pekan depan`
+        : `Tren turun ${Math.abs(growthPct).toFixed(1)}% pekan depan`,
+      desc: isGrowing
+        ? 'Siapkan staf dan stok bahan ekstra di jam sibuk untuk menangkap lonjakan permintaan.'
+        : 'Aktifkan promo bundling dan broadcast WhatsApp untuk menahan penurunan omzet.',
+      tint: isGrowing ? 'from-emerald-500 to-teal-400' : 'from-rose-500 to-orange-400',
+      tab: isGrowing ? 'booking' : 'pos',
+      cta: isGrowing ? 'Atur Jadwal' : 'Buka Kasir'
+    },
+    {
+      icon: CalendarCheck,
+      title: `Hari terbaik: ${peakDay.label} (${formatIDR(peakDay.total)})`,
+      desc: 'Alokasikan barber/stylist senior dan stok ekstra di hari ini untuk memaksimalkan omzet.',
+      tint: 'from-champagne-500 to-pink-400',
+      tab: 'booking',
+      cta: 'Lihat Jadwal'
+    },
+    {
+      icon: Zap,
+      title: `Genjot hari ${slowDay.label} (${formatIDR(slowDay.total)})`,
+      desc: 'Omzet terendah pekan ini. Jadwalkan promo happy hour atau diskon treatment di hari tersebut.',
+      tint: 'from-violet-500 to-blue-400',
+      tab: 'pricelist',
+      cta: 'Atur Promo'
+    }
+  ];
+
+  if (lowStockProducts.length > 0) {
+    recommendations.push({
+      icon: Package,
+      title: `${lowStockProducts.length} bahan/produk menipis`,
+      desc: 'Buat purchase order sekarang agar layanan tidak terhenti saat permintaan naik.',
+      tint: 'from-amber-500 to-orange-400',
+      tab: 'procurement',
+      cta: 'Buat PO'
+    });
+  }
+
+  if (birthdayThisMonth > 0) {
+    recommendations.push({
+      icon: Cake,
+      title: `${birthdayThisMonth} pelanggan ulang tahun bulan ini`,
+      desc: 'Kirim promo diskon ulang tahun untuk mendorong kunjungan ulang pelanggan.',
+      tint: 'from-pink-500 to-champagne-400',
+      tab: 'crm',
+      cta: 'Buka CRM'
+    });
+  }
+
+  if (topService) {
+    recommendations.push({
+      icon: Award,
+      title: `Layanan terlaris: ${topService.name}`,
+      desc: `Menyumbang ${formatIDR(topService.revenue)} omzet. Buat paket bundling untuk menaikkan nilai transaksi.`,
+      tint: 'from-blue-500 to-cyan-400',
+      tab: 'pricelist',
+      cta: 'Lihat Price List'
+    });
+  }
+
 
   const displayName = currentUser?.name?.split(' ')[0] || 'Yuni';
   const todayLabel = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -202,46 +327,125 @@ export const DashboardModule = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-5">
           <div className="surface p-6">
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
               <div>
-                <h3 className="font-display text-base font-bold text-charcoal-900">Tren Pendapatan 7 Hari</h3>
-                <p className="text-[11px] text-charcoal-400 mt-0.5">Kumulatif penjualan kasir dan jasa salon</p>
+                <h3 className="font-display text-base font-bold text-charcoal-900 flex items-center gap-2">
+                  Tren &amp; Prediksi Pendapatan
+                  <span className="chip bg-violet-50 text-violet-700 border border-violet-200">
+                    <Sparkles className="w-3 h-3" /> Insight
+                  </span>
+                </h3>
+                <p className="text-[11px] text-charcoal-400 mt-0.5">7 hari terakhir (aktual) + 7 hari ke depan (prediksi)</p>
               </div>
               <div className="text-right">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-charcoal-400">Total 7 hari</div>
-                <div className="font-display text-sm font-bold gradient-text">{formatIDR(weeklyRevenue)}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-charcoal-400">Aktual 7 hari</div>
+                <div className="font-display text-sm font-bold gradient-text">{formatIDR(actualWeekly)}</div>
+                <div className="text-[10px] text-charcoal-400 mt-0.5">Prediksi pekan depan {formatIDR(predictedWeekly)}</div>
               </div>
             </div>
 
-            <div className="h-52 flex items-end gap-2.5 border-b border-ivory-200 px-1 pb-1">
-              {chartDays.map((item, idx) => {
-                const heightPercent = maxDayRevenue > 0 ? Math.max(10, (item.total / maxDayRevenue) * 100) : 10;
-                const isToday = idx === chartDays.length - 1;
+            <div className="h-52 flex items-end gap-1.5 border-b border-ivory-200 px-1 pb-1">
+              {chartSeries.map((item, idx) => {
+                const heightPercent = maxChartRevenue > 0 ? Math.max(6, (item.total / maxChartRevenue) * 100) : 6;
+                const isToday = idx === 6;
+                const isForecast = !!item.isForecast;
+                const isFirstForecast = idx === 7;
                 return (
-                  <div key={item.date} className="flex-1 flex flex-col items-center gap-2 group relative">
+                  <div
+                    key={`${item.date}-${idx}`}
+                    className={`flex-1 flex flex-col items-center gap-1.5 group relative ${isFirstForecast ? 'ml-1.5 pl-1.5 border-l border-dashed border-violet-300' : ''}`}
+                  >
                     <div className="absolute -top-9 opacity-0 group-hover:opacity-100 transition-opacity bg-charcoal-900 text-white text-[10px] font-bold py-1 px-2 rounded-lg pointer-events-none whitespace-nowrap shadow-lg z-20">
-                      {formatIDR(item.total)}
+                      {isForecast ? 'Prediksi · ' : ''}{formatIDR(item.total)}
                     </div>
-                    <div className="w-full max-w-[40px] h-full flex items-end rounded-t-xl bg-ivory-100 overflow-hidden">
+                    <div className={`w-full h-full flex items-end rounded-t-xl overflow-hidden ${isForecast ? 'bg-violet-50' : 'bg-ivory-100'}`}>
                       <div
                         className={`w-full rounded-t-xl transition-all duration-500 group-hover:brightness-110 ${
                           isToday
-                            ? 'bg-gradient-to-t from-champagne-600 to-gold-400 shadow-glow-pink'
-                            : 'bg-gradient-to-t from-violet-400/80 to-blue-300/70'
+                            ? 'bg-gradient-to-t from-champagne-500 to-gold-400 shadow-glow-pink'
+                            : isForecast
+                              ? 'bg-gradient-to-t from-violet-400/55 to-blue-300/45'
+                              : 'bg-gradient-to-t from-violet-400/80 to-blue-300/70'
                         }`}
                         style={{ height: `${heightPercent}%` }}
                       />
                     </div>
-                    <span className={`text-[10px] font-semibold ${isToday ? 'text-champagne-700' : 'text-charcoal-400'}`}>
+                    <span className={`text-[9px] font-semibold ${isToday ? 'text-champagne-700' : isForecast ? 'text-violet-500' : 'text-charcoal-400'}`}>
                       {item.label}
                     </span>
                   </div>
                 );
               })}
             </div>
-            <div className="flex items-center justify-between text-[10px] text-charcoal-400 pt-3">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-charcoal-400 pt-3">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-champagne-500 to-gold-400" /> Hari ini</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-violet-400 to-blue-300" /> Hari sebelumnya</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-violet-200 border border-dashed border-violet-400" /> Prediksi</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+              <div className="surface-flat p-3">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-charcoal-400">Prediksi 7 Hari</div>
+                <div className="font-display text-sm font-extrabold text-charcoal-900 mt-1">{formatIDR(predictedWeekly)}</div>
+                <span className={`chip mt-1.5 ${isGrowing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
+                  {isGrowing ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {growthPct >= 0 ? '+' : ''}{growthPct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="surface-flat p-3">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-charcoal-400">Rata-rata Harian</div>
+                <div className="font-display text-sm font-extrabold text-charcoal-900 mt-1">{formatIDR(avgDaily)}</div>
+                <div className="text-[10px] text-charcoal-400 mt-1.5">Aktual + prediksi</div>
+              </div>
+              <div className="surface-flat p-3">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-charcoal-400">Proyeksi 30 Hari</div>
+                <div className="font-display text-sm font-extrabold gradient-text mt-1">{formatIDR(monthlyProjection)}</div>
+                <div className="text-[10px] text-charcoal-400 mt-1.5">Berdasarkan tren terkini</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Prediksi & Rekomendasi */}
+          <div className="surface p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 className="font-display text-base font-bold text-charcoal-900 flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-xl bg-gradient-to-tr from-violet-500 to-blue-400 text-white flex items-center justify-center shadow-glow-violet">
+                    <Lightbulb className="w-4 h-4" />
+                  </span>
+                  Prediksi &amp; Rekomendasi
+                </h3>
+                <p className="text-[11px] text-charcoal-400 mt-1">
+                  Dihitung otomatis dari tren 7 hari terakhir menggunakan regresi linear sederhana.
+                </p>
+              </div>
+              <span className={`chip shrink-0 ${isGrowing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
+                {isGrowing ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                {isGrowing ? 'Prospek naik' : 'Perlu perhatian'}
+              </span>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {recommendations.slice(0, 4).map((rec, i) => {
+                const Icon = rec.icon;
+                return (
+                  <div key={i} className="surface-flat p-3 flex items-start gap-3 hover:shadow-soft transition-shadow">
+                    <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${rec.tint} text-white flex items-center justify-center shrink-0`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-bold text-charcoal-900 leading-snug">{rec.title}</div>
+                      <p className="text-[10px] text-charcoal-500 leading-relaxed mt-0.5">{rec.desc}</p>
+                      <button
+                        onClick={() => setActiveTab(rec.tab)}
+                        className="mt-1.5 text-[10px] font-bold text-champagne-700 hover:text-champagne-800 inline-flex items-center gap-1"
+                      >
+                        {rec.cta} <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
