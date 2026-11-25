@@ -168,3 +168,57 @@ export const PRICE_LIST_CATEGORIES = [
     ]
   }
 ];
+
+// ————————————————————————————————————————————————
+// Media & helper tambahan untuk UI (dashboard, login, galeri)
+// ————————————————————————————————————————————————
+
+export const SALON_GALLERY = [
+  {
+    src: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80',
+    title: 'Studio Hair Styling',
+    caption: 'Suasana salon yang hangat & nyaman',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=900&q=80',
+    title: 'Stylist Profesional',
+    caption: 'Konsultasi gaya sebelum treatment',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80',
+    title: 'Barbershop Corner',
+    caption: 'Kursi barber klasik untuk gentlemen',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=900&q=80',
+    title: 'Hair Cut Presisi',
+    caption: 'Hasil rapi untuk setiap pelanggan',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&q=80',
+    title: 'Rias Wajah',
+    caption: 'Makeup natural untuk hari spesial',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=900&q=80',
+    title: 'Hair Spa & Creambath',
+    caption: 'Relaksasi dengan pijat kepala',
+  },
+];
+
+export const HERO_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80';
+export const LOGIN_IMAGE = 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1400&q=80';
+export const PROMO_IMAGES = {
+  hairSpa: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=800&q=80',
+  coloring: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=800&q=80',
+  barber: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
+};
+
+export const formatIDR = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
+export const priceLabel = (item) => (item && item.priceLabel) || formatIDR(item && item.price);
+
+// Total varian harga (dipakai untuk badge ringkasan)
+export const PRICE_LIST_TOTAL = PRICE_LIST_CATEGORIES.reduce(
+  (acc, cat) => acc + cat.groups.reduce((sum, g) => sum + g.items.length, 0),
+  0
+);

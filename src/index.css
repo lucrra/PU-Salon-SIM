@@ -7,22 +7,90 @@
     scroll-behavior: smooth;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
+
+  body {
+    background:
+      radial-gradient(1200px 600px at 8% -10%, rgba(236, 76, 135, 0.10), transparent 60%),
+      radial-gradient(1000px 600px at 100% 0%, rgba(79, 140, 255, 0.10), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, rgba(139, 92, 246, 0.10), transparent 60%),
+      #FFF7FA;
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: #FECDDF;
+    color: #6E1438;
+  }
+}
+
+@layer components {
+  /* Elevated surface used across modules */
+  .surface {
+    @apply bg-white/90 backdrop-blur-sm border border-ivory-300/80 rounded-3xl shadow-card;
+  }
+
+  .surface-flat {
+    @apply bg-white/85 border border-ivory-300/70 rounded-2xl;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-champagne-600 via-gold-500 to-blue-500 bg-clip-text text-transparent;
+  }
+
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold text-white
+           bg-gradient-to-r from-champagne-500 via-gold-500 to-blue-500 shadow-glow-pink
+           hover:shadow-glow-violet transition-all duration-300 active:scale-[.97];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold
+           text-charcoal-700 bg-white/80 border border-ivory-300 hover:border-champagne-300
+           hover:text-champagne-700 transition-all duration-200 active:scale-[.97];
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold;
+  }
+
+  .nav-pill-active {
+    background: linear-gradient(90deg, rgba(236,76,135,.14), rgba(139,92,246,.14) 60%, rgba(79,140,255,.12));
+    @apply text-champagne-800 border border-champagne-200/70 shadow-sm;
+  }
+
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #E9D2E2 transparent;
+  }
 }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #F5F2EB;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D5C7B0;
+  background: #E9D2E2;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B8935A;
+  background: #FBA7C6;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Decorative image treatment */
+.img-cover {
+  @apply object-cover w-full h-full;
 }
 
 /* Print styles for digital receipts */

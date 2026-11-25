@@ -60,6 +60,10 @@ export const AppProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(() => loadState('role', 'owner'));
   const [activeStaffId, setActiveStaffId] = useState(() => loadState('activeStaffId', 'stf-1'));
 
+  // Autentikasi (simulasi JWT login)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => loadState('authenticated', false));
+  const [currentUser, setCurrentUser] = useState(() => loadState('currentUser', null));
+
   // Active navigation tab
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -100,6 +104,47 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('pu_salon_purchaseReturns', JSON.stringify(purchaseReturns)); }, [purchaseReturns]);
   useEffect(() => { localStorage.setItem('pu_salon_role', JSON.stringify(userRole)); }, [userRole]);
   useEffect(() => { localStorage.setItem('pu_salon_activeStaffId', JSON.stringify(activeStaffId)); }, [activeStaffId]);
+  useEffect(() => { localStorage.setItem('pu_salon_authenticated', JSON.stringify(isAuthenticated)); }, [isAuthenticated]);
+  useEffect(() => { localStorage.setItem('pu_salon_currentUser', JSON.stringify(currentUser)); }, [currentUser]);
+
+  // Autentikasi — login/logout simulasi (JWT-style session)
+  const demoAccounts = [
+    { id: 'owner', role: 'owner', name: 'Yuni Puspita', email: 'owner@pusalon.co.id', label: 'Owner / Pemilik', password: 'demo123' },
+    { id: 'admin', role: 'admin', name: 'Dian Kartika', email: 'admin@pusalon.co.id', label: 'Admin Salon', password: 'demo123' },
+    { id: 'staff', role: 'staff', name: 'Budi Santoso', email: 'staff@pusalon.co.id', label: 'Staf / Stylist', password: 'demo123' }
+  ];
+
+  const login = ({ email, password }) => {
+    const account = demoAccounts.find(a => a.email.toLowerCase() === String(email || '').trim().toLowerCase());
+    if (!account || password !== account.password) {
+      return { success: false, message: 'Email atau password tidak sesuai. Gunakan akun demo di bawah.' };
+    }
+    setUserRole(account.role);
+    if (account.role === 'staff') setActiveStaffId('stf-1');
+    setCurrentUser({
+      name: account.name,
+      email: account.email,
+      role: account.role,
+      label: account.label,
+      token: `jwt.${btoa(`${account.email}:${Date.now()}`).replace(/=/g, '')}.demo`,
+      loginAt: new Date().toISOString()
+    });
+    setIsAuthenticated(true);
+    showToast('success', 'Login Berhasil', `Selamat datang kembali, ${account.name}!`);
+    return { success: true, account };
+  };
+
+  const loginAs = (roleId) => {
+    const account = demoAccounts.find(a => a.role === roleId) || demoAccounts[0];
+    return login({ email: account.email, password: account.password });
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setActiveTab('dashboard');
+    showToast('info', 'Sesi Berakhir', 'Anda telah keluar dari sistem dengan aman.');
+  };
 
   // Reset to demo data
   const resetAllData = () => {
@@ -996,6 +1041,12 @@ export const AppProvider = ({ children }) => {
         setUserRole,
         activeStaffId,
         setActiveStaffId,
+        isAuthenticated,
+        currentUser,
+        demoAccounts,
+        login,
+        loginAs,
+        logout,
         activeTab,
         setActiveTab,
         initialPOSCart,
