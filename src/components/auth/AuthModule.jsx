@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  Scissors,
   Sparkles,
   Mail,
   Lock,
@@ -44,8 +43,8 @@ export const AuthModule = () => {
 
         <div className="relative z-10 h-full flex flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 flex items-center justify-center shadow-glow-pink">
-              <Scissors className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-charcoal-950 ring-1 ring-white/25 shadow-lg p-0.5 overflow-hidden">
+              <img src="/logo.png" alt="PU Salon & Barbershop" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
               <div className="font-display text-xl font-bold tracking-tight">PU SALON</div>
@@ -94,8 +93,8 @@ export const AuthModule = () => {
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md animate-fadeUp">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 flex items-center justify-center text-white shadow-glow-pink">
-              <Scissors className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-charcoal-950 ring-1 ring-charcoal-800 shadow-sm p-0.5 overflow-hidden">
+              <img src="/logo.png" alt="PU Salon & Barbershop" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
               <div className="font-display font-bold text-lg text-charcoal-900">PU SALON</div>
