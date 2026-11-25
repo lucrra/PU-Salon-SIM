@@ -127,7 +127,7 @@ export const DashboardModule = () => {
       {/* Hero */}
       <section className="relative overflow-hidden rounded-[2rem] shadow-luxury">
         <img src={HERO_IMAGE} alt="PU Salon" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/92 via-charcoal-900/70 to-champagne-800/35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/90 via-charcoal-900/70 to-champagne-800/35" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(236,76,135,.35),transparent_45%),radial-gradient(circle_at_30%_100%,rgba(79,140,255,.28),transparent_45%)]" />
 
         <div className="relative z-10 p-7 md:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">

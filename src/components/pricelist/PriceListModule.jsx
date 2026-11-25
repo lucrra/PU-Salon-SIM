@@ -92,7 +92,7 @@ export const PriceListModule = () => {
       {/* Hero */}
       <section className="relative overflow-hidden rounded-[2rem] shadow-luxury">
         <img src={HERO_IMAGE} alt="PU Salon Studio" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/92 via-charcoal-900/75 to-champagne-800/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-charcoal-950/90 via-charcoal-900/75 to-champagne-800/40" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(236,76,135,.35),transparent_45%),radial-gradient(circle_at_15%_90%,rgba(79,140,255,.3),transparent_45%)]" />
 
         <div className="relative z-10 p-8 md:p-11 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
