@@ -41,7 +41,7 @@ export const AuthModule = () => {
         <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/90 via-charcoal-900/70 to-charcoal-950/55" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,76,135,.42),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(38,190,130,.34),transparent_45%)]" />
 
-        <div className="relative z-10 h-full flex flex-col justify-between p-12 text-white">
+        <div className="relative z-10 h-full flex flex-col justify-between p-12 text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-charcoal-950 ring-1 ring-white/25 shadow-lg p-0.5 overflow-hidden">
               <img src="/logo.png" alt="PU Salon & Barbershop" className="w-full h-full object-contain rounded-xl" />
