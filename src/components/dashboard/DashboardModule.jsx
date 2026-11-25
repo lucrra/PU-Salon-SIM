@@ -20,7 +20,9 @@ import {
   Zap,
   Cake,
   Package,
-  Award
+  Award,
+  MapPin,
+  ExternalLink
 } from 'lucide-react';
 import { HERO_IMAGE, PROMO_IMAGES, formatIDR } from '../../data/priceList';
 
@@ -38,7 +40,13 @@ export const DashboardModule = () => {
     salonProfile
   } = useApp();
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const toLocalDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const todayStr = toLocalDateKey(new Date());
 
   const todayRevenue = transactions
     .filter(t => t.date.startsWith(todayStr))
@@ -64,7 +72,7 @@ export const DashboardModule = () => {
   const chartDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    const dStr = d.toISOString().slice(0, 10);
+    const dStr = toLocalDateKey(d);
     const dayTotal = transactions
       .filter(t => t.date.startsWith(dStr))
       .reduce((sum, t) => sum + t.total, 0);
@@ -91,7 +99,7 @@ export const DashboardModule = () => {
     const d = new Date();
     d.setDate(d.getDate() + i + 1);
     return {
-      date: d.toISOString().slice(0, 10),
+      date: toLocalDateKey(d),
       label: days[d.getDay()],
       dayNum: d.getDate(),
       total: Math.max(0, Math.round(intercept + slope * (nDays + i))),
@@ -289,6 +297,23 @@ export const DashboardModule = () => {
             )}
           </div>
         </div>
+      </section>
+
+      {/* Lokasi salon */}
+      <section className="surface p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-champagne-50 text-champagne-700 flex items-center justify-center shrink-0">
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-charcoal-900">Lokasi PU Salon &amp; Barbershop · Semarang</div>
+            <p className="text-[11px] text-charcoal-500 mt-0.5">{salonProfile.address}</p>
+            <p className="text-[10px] text-charcoal-400 mt-0.5">{salonProfile.operatingHours?.monday?.label} · {salonProfile.operatingHours?.regular?.label}</p>
+          </div>
+        </div>
+        <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salonProfile.address)}`} target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-charcoal-900 text-white text-[10px] font-bold hover:bg-charcoal-700">
+          Buka Google Maps <ExternalLink className="w-3 h-3" />
+        </a>
       </section>
 
       {/* KPI */}
