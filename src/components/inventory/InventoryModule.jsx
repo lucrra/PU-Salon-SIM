@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import {
   Package,
@@ -13,13 +14,18 @@ import {
   Truck,
   CheckCircle2,
   Calendar,
-  Filter
+  Filter,
+  Pencil,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 
 export const InventoryModule = () => {
   const {
     products,
     setProducts,
+    addProduct,
+    updateProduct,
     batches,
     movements,
     suppliers,
@@ -27,6 +33,8 @@ export const InventoryModule = () => {
     showToast,
     userRole
   } = useApp();
+
+  const isOwner = userRole === 'owner';
 
   const [activeTabSub, setActiveTabSub] = useState('products'); // 'products' | 'batches' | 'movements'
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +46,93 @@ export const InventoryModule = () => {
   const [adjustType, setAdjustType] = useState('in'); // 'in' | 'out' | 'adjustment'
   const [adjustQty, setAdjustQty] = useState(1);
   const [adjustNotes, setAdjustNotes] = useState('');
+
+  // Product Catalog Modal (Owner only)
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({
+    name: '',
+    sku: '',
+    type: 'retail',
+    unit: 'pcs',
+    buyPrice: 0,
+    sellPrice: 0,
+    minStock: 5,
+    currentStock: 0,
+    description: ''
+  });
+
+  const openAddProduct = () => {
+    if (!isOwner) {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat menambah produk.');
+      return;
+    }
+    setEditingProduct(null);
+    setProductForm({
+      name: '',
+      sku: '',
+      type: 'retail',
+      unit: 'pcs',
+      buyPrice: 0,
+      sellPrice: 0,
+      minStock: 5,
+      currentStock: 0,
+      description: ''
+    });
+    setIsProductModalOpen(true);
+  };
+
+  const openEditProduct = (prod) => {
+    if (!isOwner) {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat mengubah produk.');
+      return;
+    }
+    setEditingProduct(prod);
+    setProductForm({
+      name: prod.name || '',
+      sku: prod.sku || '',
+      type: prod.type || 'retail',
+      unit: prod.unit || 'pcs',
+      buyPrice: prod.buyPrice || 0,
+      sellPrice: prod.sellPrice || 0,
+      minStock: prod.minStock || 0,
+      currentStock: prod.currentStock || 0,
+      description: prod.description || ''
+    });
+    setIsProductModalOpen(true);
+  };
+
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+    if (!isOwner) return;
+
+    const name = productForm.name.trim();
+    if (!name) {
+      showToast('error', 'Nama Wajib Diisi', 'Nama produk tidak boleh kosong.');
+      return;
+    }
+    if (productForm.type === 'retail' && Number(productForm.sellPrice) <= 0) {
+      showToast('error', 'Harga Jual Belum Diisi', 'Produk ritel harus memiliki harga jual untuk pelanggan.');
+      return;
+    }
+
+    const payload = {
+      name,
+      sku: productForm.sku.trim(),
+      type: productForm.type,
+      unit: productForm.unit,
+      buyPrice: Number(productForm.buyPrice) || 0,
+      sellPrice: Number(productForm.sellPrice) || 0,
+      minStock: Number(productForm.minStock) || 0,
+      description: productForm.description.trim()
+    };
+
+    const result = editingProduct
+      ? updateProduct(editingProduct.id, payload)
+      : addProduct({ ...payload, currentStock: Number(productForm.currentStock) || 0 });
+
+    if (result?.success) setIsProductModalOpen(false);
+  };
 
   // Low stock products
   const lowStockCount = products.filter(p => p.currentStock <= p.minStock).length;
@@ -155,8 +250,8 @@ export const InventoryModule = () => {
         </div>
 
         {/* Search, Filter & Actions */}
-        <div className="flex items-center gap-3">
-          <div className="relative min-w-[200px]">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[200px] flex-1 md:flex-none">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400" />
             <input
               type="text"
@@ -166,6 +261,20 @@ export const InventoryModule = () => {
               className="w-full pl-9 pr-4 py-2 bg-ivory-100/70 border border-ivory-300 rounded-xl text-xs focus:outline-none focus:border-champagne-500"
             />
           </div>
+
+          {isOwner ? (
+            <button
+              onClick={openAddProduct}
+              className="px-3.5 py-2 bg-champagne-500 hover:bg-champagne-400 text-charcoal-900 font-bold text-xs rounded-xl shadow-gold transition-all flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Produk</span>
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold">
+              <Lock className="w-3.5 h-3.5" /> Katalog khusus Owner
+            </span>
+          )}
 
           <button
             onClick={() => setIsAdjustModalOpen(true)}
@@ -236,14 +345,33 @@ export const InventoryModule = () => {
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        {isLow && (
-                          <button
-                            onClick={() => setActiveTab('procurement')}
-                            className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] rounded-lg shadow-sm"
-                          >
-                            Pesan ke Supplier
-                          </button>
-                        )}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {isOwner ? (
+                            <button
+                              onClick={() => openEditProduct(prod)}
+                              title="Edit produk"
+                              aria-label={`Edit ${prod.name}`}
+                              className="p-1.5 rounded-lg bg-champagne-50 border border-champagne-200 text-champagne-800 hover:bg-champagne-100 transition-colors"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <span
+                              className="p-1.5 text-charcoal-300"
+                              title="Hanya Owner yang dapat mengubah produk"
+                            >
+                              <Lock className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                          {isLow && (
+                            <button
+                              onClick={() => setActiveTab('procurement')}
+                              className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] rounded-lg shadow-sm"
+                            >
+                              Pesan ke Supplier
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -368,7 +496,7 @@ export const InventoryModule = () => {
       )}
 
       {/* Stock Adjustment Modal */}
-      {isAdjustModalOpen && (
+      {isAdjustModalOpen && createPortal(
         <div className="fixed inset-0 bg-charcoal-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-luxury border border-ivory-300 p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-ivory-200">
@@ -454,7 +582,181 @@ export const InventoryModule = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Product Catalog Modal — Owner only */}
+      {isProductModalOpen && createPortal(
+        <div className="fixed inset-0 bg-charcoal-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-luxury border border-ivory-300 p-6 space-y-4 max-h-[95vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-ivory-200">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal-900">
+                  {editingProduct ? 'Edit Produk Katalog' : 'Tambah Produk Baru'}
+                </h3>
+                <p className="text-[10px] text-charcoal-400">
+                  Produk ritel otomatis muncul di Kasir dan Price List pelanggan.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsProductModalOpen(false)}
+                className="text-charcoal-400 hover:text-charcoal-700 p-1"
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProduct} className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-[1.6fr_1fr] gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Nama Produk *</label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.name}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Contoh: Hair Mask Keratin 250ml"
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">SKU</label>
+                  <input
+                    type="text"
+                    value={productForm.sku}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, sku: e.target.value }))}
+                    placeholder="Otomatis bila kosong"
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Jenis Produk</label>
+                  <select
+                    value={productForm.type}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl font-medium"
+                  >
+                    <option value="retail">Ritel — dijual ke pelanggan</option>
+                    <option value="material">Bahan — pemakaian salon</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Satuan</label>
+                  <select
+                    value={productForm.unit}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, unit: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl font-medium"
+                  >
+                    {['pcs', 'bottle', 'jar', 'tube', 'sachet', 'box', 'pack', 'roll', 'can'].map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Harga Beli (Modal)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    value={productForm.buyPrice}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, buyPrice: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">
+                    Harga Jual Pelanggan {productForm.type === 'retail' && '*'}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    required={productForm.type === 'retail'}
+                    value={productForm.sellPrice}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, sellPrice: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl font-bold text-champagne-800"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">Stok Minimum</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={productForm.minStock}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, minStock: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">
+                    {editingProduct ? 'Stok Saat Ini' : 'Stok Awal'}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    disabled={!!editingProduct}
+                    value={productForm.currentStock}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, currentStock: e.target.value }))}
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                  {editingProduct && (
+                    <p className="text-[10px] text-charcoal-400 mt-1">
+                      Ubah stok lewat tombol <strong>Koreksi Stok</strong> agar batch FIFO tetap akurat.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal-700 mb-1">Deskripsi & Cara Pakai</label>
+                <textarea
+                  rows="3"
+                  value={productForm.description}
+                  onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Contoh: Masker rambut untuk perawatan di rumah, pakai 2-3 kali seminggu."
+                  className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl resize-none"
+                />
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-800 flex items-start gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>
+                  {editingProduct
+                    ? 'Perubahan nama, harga, dan deskripsi langsung tampil di Kasir serta Price List.'
+                    : 'Stok awal otomatis dicatat sebagai batch FIFO dan dialokasikan ke gudang retail/utama.'}
+                </span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-ivory-200">
+                <button
+                  type="button"
+                  onClick={() => setIsProductModalOpen(false)}
+                  className="px-4 py-2 font-semibold text-charcoal-500 hover:text-charcoal-700"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-champagne-500 hover:bg-champagne-400 text-charcoal-900 font-bold rounded-xl shadow-gold"
+                >
+                  {editingProduct ? 'Simpan Perubahan' : 'Tambah Produk'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

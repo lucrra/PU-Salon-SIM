@@ -36,10 +36,18 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Gabungkan data tersimpan dengan entri baru dari data awal (tanpa menghapus data pengguna)
+  const loadMergedState = (key, defaults) => {
+    const saved = loadState(key, null);
+    if (!Array.isArray(saved)) return defaults;
+    const savedIds = new Set(saved.map(item => item.id));
+    return [...saved, ...defaults.filter(item => !savedIds.has(item.id))];
+  };
+
   const [staff, setStaff] = useState(() => loadState('staff', INITIAL_STAFF));
   const [services, setServices] = useState(() => loadState('services', INITIAL_SERVICES));
-  const [products, setProducts] = useState(() => loadState('products', INITIAL_PRODUCTS));
-  const [batches, setBatches] = useState(() => loadState('batches', INITIAL_BATCHES));
+  const [products, setProducts] = useState(() => loadMergedState('products', INITIAL_PRODUCTS));
+  const [batches, setBatches] = useState(() => loadMergedState('batches', INITIAL_BATCHES));
   const [customers, setCustomers] = useState(() => loadState('customers', INITIAL_CUSTOMERS));
   const [appointments, setAppointments] = useState(() => loadState('appointments', INITIAL_APPOINTMENTS));
   const [transactions, setTransactions] = useState(() => loadState('transactions', INITIAL_TRANSACTIONS));
@@ -50,7 +58,7 @@ export const AppProvider = ({ children }) => {
 
   // SCM state
   const [warehouses, setWarehouses] = useState(() => loadState('warehouses', INITIAL_WAREHOUSES));
-  const [warehouseStock, setWarehouseStock] = useState(() => loadState('warehouseStock', INITIAL_WAREHOUSE_STOCK));
+  const [warehouseStock, setWarehouseStock] = useState(() => loadMergedState('warehouseStock', INITIAL_WAREHOUSE_STOCK));
   const warehouseStockRef = useRef(warehouseStock);
   const [requisitions, setRequisitions] = useState(() => loadState('requisitions', INITIAL_REQUISITIONS));
   const [goodsReceipts, setGoodsReceipts] = useState(() => loadState('goodsReceipts', INITIAL_GOODS_RECEIPTS));
@@ -277,6 +285,113 @@ export const AppProvider = ({ children }) => {
       return { ...s, ...updates, commissionRate: nextCommission };
     }));
     showToast('success', 'Profil Staf Diperbarui', `Data ${updates.name || 'staf'} berhasil disimpan.`);
+  };
+
+  // Owner: tambah produk katalog (ritel perawatan rumah / bahan salon) + stok awal
+  const addProduct = (data) => {
+    if (userRole !== 'owner') {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat menambah produk.');
+      return { success: false };
+    }
+    const name = String(data.name || '').trim();
+    if (!name) {
+      showToast('error', 'Nama Wajib Diisi', 'Nama produk tidak boleh kosong.');
+      return { success: false };
+    }
+
+    const type = data.type === 'material' ? 'material' : 'retail';
+    const stock = Math.max(0, Number(data.currentStock) || 0);
+    const buyPrice = Math.max(0, Number(data.buyPrice) || 0);
+    const sellPrice = Math.max(0, Number(data.sellPrice) || 0);
+    const minStock = Math.max(0, Number(data.minStock) || 0);
+    const stamp = Date.now();
+    const id = `prd-${stamp}`;
+    const sku = String(data.sku || '').trim() || `${type === 'retail' ? 'RET' : 'MAT'}-${stamp.toString().slice(-6)}`;
+
+    const product = {
+      id,
+      sku,
+      name,
+      category: type === 'retail' ? 'Retail' : 'Material',
+      type,
+      unit: data.unit || 'pcs',
+      minStock,
+      currentStock: stock,
+      buyPrice,
+      sellPrice,
+      description: String(data.description || '').trim()
+    };
+
+    setProducts(prev => [...prev, product]);
+
+    if (stock > 0) {
+      const today = new Date().toISOString().slice(0, 10);
+      const expiry = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const warehouseId = type === 'retail' ? 'wh-retail' : 'wh-main';
+
+      setBatches(prev => [...prev, {
+        id: `btc-${stamp}`,
+        productId: id,
+        batchNo: `BATCH-${new Date().getFullYear()}-${String(stamp).slice(-4)}`,
+        dateIn: today,
+        initialQty: stock,
+        remainingQty: stock,
+        costPrice: buyPrice,
+        expiryDate: expiry,
+        supplierId: null
+      }]);
+
+      setWarehouseStock(prev => [...prev, {
+        id: `wst-${stamp}`,
+        warehouseId,
+        productId: id,
+        qty: stock
+      }]);
+
+      setMovements(prev => [{
+        id: `mov-${stamp}`,
+        date: new Date().toISOString(),
+        productId: id,
+        productName: name,
+        type: 'in',
+        reference: 'Katalog Produk',
+        channel: 'catalog',
+        qty: stock,
+        warehouseId,
+        notes: 'Stok awal produk baru'
+      }, ...prev]);
+    }
+
+    showToast('success', 'Produk Ditambahkan', `${name} kini tersedia di katalog & kasir.`);
+    return { success: true, product };
+  };
+
+  // Owner: ubah detail produk katalog (stok diubah lewat Koreksi Stok)
+  const updateProduct = (productId, updates) => {
+    if (userRole !== 'owner') {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat mengubah produk.');
+      return { success: false };
+    }
+
+    setProducts(prev => prev.map(p => {
+      if (p.id !== productId) return p;
+      const type = updates.type ? (updates.type === 'material' ? 'material' : 'retail') : p.type;
+      return {
+        ...p,
+        ...updates,
+        type,
+        category: type === 'retail' ? 'Retail' : 'Material',
+        name: updates.name !== undefined ? (String(updates.name).trim() || p.name) : p.name,
+        sku: updates.sku !== undefined ? (String(updates.sku).trim() || p.sku) : p.sku,
+        buyPrice: updates.buyPrice !== undefined ? Math.max(0, Number(updates.buyPrice) || 0) : p.buyPrice,
+        sellPrice: updates.sellPrice !== undefined ? Math.max(0, Number(updates.sellPrice) || 0) : p.sellPrice,
+        minStock: updates.minStock !== undefined ? Math.max(0, Number(updates.minStock) || 0) : p.minStock,
+        currentStock: p.currentStock
+      };
+    }));
+
+    showToast('success', 'Produk Diperbarui', 'Perubahan katalog produk berhasil disimpan.');
+    return { success: true };
   };
 
   // 2. Appointment CRUD & Workflows
@@ -1150,6 +1265,8 @@ export const AppProvider = ({ children }) => {
         setServices,
         products,
         setProducts,
+        addProduct,
+        updateProduct,
         batches,
         customers,
         setCustomers,

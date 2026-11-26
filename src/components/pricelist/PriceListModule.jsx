@@ -12,7 +12,8 @@ import {
   Wand2,
   Sparkle,
   Brush,
-  Sun
+  Sun,
+  ShoppingBag
 } from 'lucide-react';
 import {
   PRICE_LIST_CATEGORIES,
@@ -55,9 +56,18 @@ const accents = [
 ];
 
 export const PriceListModule = () => {
-  const { setActiveTab } = useApp();
+  const { setActiveTab, products } = useApp();
   const [active, setActive] = useState('all');
   const [query, setQuery] = useState('');
+
+  const retailProducts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return products.filter(p =>
+      p.type === 'retail' &&
+      p.sellPrice > 0 &&
+      (!q || `${p.name} ${p.description || ''}`.toLowerCase().includes(q))
+    );
+  }, [products, query]);
 
   const categories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -255,6 +265,63 @@ export const PriceListModule = () => {
         <div className="surface p-10 text-center text-sm text-charcoal-500">
           Tidak ada layanan yang cocok dengan pencarian “{query}”.
         </div>
+      )}
+
+      {/* Produk ritel untuk perawatan di rumah */}
+      {active === 'all' && retailProducts.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+            <div>
+              <h2 className="font-display text-xl font-bold text-charcoal-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-champagne-600" />
+                Produk Perawatan di Rumah
+              </h2>
+              <p className="text-xs text-charcoal-500 mt-1">
+                Lanjutkan hasil treatment salon di rumah dengan produk pilihan terapis kami.
+              </p>
+            </div>
+            <span className="chip bg-champagne-50 text-champagne-700 border border-champagne-200 w-fit">
+              <ShoppingBag className="w-3 h-3" /> {retailProducts.length} produk tersedia
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {retailProducts.map(p => {
+              const available = p.currentStock > 0;
+              return (
+                <article key={p.id} className="surface p-5 flex flex-col justify-between gap-3 hover:-translate-y-0.5 hover:shadow-luxury transition-all duration-300">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="chip bg-blue-50 text-blue-700 border border-blue-200 uppercase">{p.unit}</span>
+                      <span className={`chip ${
+                        available
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {available ? 'Tersedia' : 'Habis'}
+                      </span>
+                    </div>
+                    <h3 className="mt-2.5 font-bold text-sm text-charcoal-900 leading-snug">{p.name}</h3>
+                    <p className="mt-1 text-[11px] text-charcoal-500 leading-relaxed line-clamp-3">{p.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-ivory-200">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-charcoal-400 font-bold">Harga</div>
+                      <div className="font-display text-base font-bold text-charcoal-900">{formatIDR(p.sellPrice)}</div>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('pos')}
+                      disabled={!available}
+                      className="btn-brand px-3 py-2 text-[11px] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" /> Beli di Kasir
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
       )}
 
       <p className="text-center text-[10px] text-charcoal-400 leading-relaxed">

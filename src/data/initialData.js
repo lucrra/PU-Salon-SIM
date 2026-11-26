@@ -310,6 +310,84 @@ export const INITIAL_PRODUCTS = [
     buyPrice: 75000,
     sellPrice: 0,
     description: "Silet jepang platinum tajam presisi untuk cukur kumis dan jenggot."
+  },
+  {
+    id: "prd-11",
+    sku: "RET-SHM-01",
+    name: "Makarizo Hair Energy Shampoo 250ml",
+    category: "Retail",
+    type: "retail",
+    unit: "bottle",
+    minStock: 5,
+    currentStock: 18,
+    buyPrice: 52000,
+    sellPrice: 78000,
+    description: "Sampo salon harian dengan vitamin B5 & royal jelly, lembut untuk perawatan rambut di rumah."
+  },
+  {
+    id: "prd-12",
+    sku: "RET-CND-01",
+    name: "Makarizo Hair Energy Conditioner 250ml",
+    category: "Retail",
+    type: "retail",
+    unit: "bottle",
+    minStock: 5,
+    currentStock: 15,
+    buyPrice: 55000,
+    sellPrice: 82000,
+    description: "Kondisioner pelembap untuk rambut kering setelah keramas, memudahkan sisir tanpa kusut."
+  },
+  {
+    id: "prd-13",
+    sku: "RET-MSK-01",
+    name: "L'Oreal Elseve Total Repair Hair Mask 300ml",
+    category: "Retail",
+    type: "retail",
+    unit: "jar",
+    minStock: 4,
+    currentStock: 10,
+    buyPrice: 98000,
+    sellPrice: 145000,
+    description: "Masker rambut rusak akibat catok & pewarnaan, dipakai 2-3 kali seminggu di rumah."
+  },
+  {
+    id: "prd-14",
+    sku: "RET-VIT-01",
+    name: "Ellips Hair Vitamin Pro-Keratin 6x1ml",
+    category: "Retail",
+    type: "retail",
+    unit: "sachet",
+    minStock: 8,
+    currentStock: 24,
+    buyPrice: 28000,
+    sellPrice: 45000,
+    description: "Vitamin rambut kapsul pro-keratin untuk kilau & kekuatan rambut, praktis dibawa pulang."
+  },
+  {
+    id: "prd-15",
+    sku: "RET-LVS-01",
+    name: "Leave-In Serum Anti Frizz 100ml",
+    category: "Retail",
+    type: "retail",
+    unit: "bottle",
+    minStock: 4,
+    currentStock: 9,
+    buyPrice: 72000,
+    sellPrice: 115000,
+    description: "Serum tanpa bilas penakluk rambut mengembang, cocok sebelum blow atau aktivitas luar ruang."
+  },
+  {
+    id: "prd-16",
+    sku: "RET-OIL-02",
+    name: "Hair Oil Argan & Jojoba 50ml",
+    category: "Retail",
+    type: "retail",
+    unit: "bottle",
+    minStock: 3,
+    currentStock: 8,
+    buyPrice: 82000,
+    sellPrice: 128000,
+    description: "Minyak argan & jojoba untuk menutrisi ujung rambut kering dan mengurangi rambut bercabang."
   }
 ];
 
@@ -319,7 +397,13 @@ export const INITIAL_BATCHES = [
   { id: "btc-3", productId: "prd-2", batchNo: "BATCH-2026-002", dateIn: "2026-10-20", initialQty: 10, remainingQty: 8, costPrice: 65000, expiryDate: "2028-04-20", supplierId: "sup-1" },
   { id: "btc-4", productId: "prd-3", batchNo: "BATCH-2026-003", dateIn: "2026-10-25", initialQty: 5, remainingQty: 4, costPrice: 125000, expiryDate: "2028-06-30", supplierId: "sup-3" },
   { id: "btc-5", productId: "prd-7", batchNo: "BATCH-2026-004", dateIn: "2026-10-10", initialQty: 5, remainingQty: 2, costPrice: 280000, expiryDate: "2028-09-01", supplierId: "sup-3" },
-  { id: "btc-6", productId: "prd-8", batchNo: "BATCH-2026-005", dateIn: "2026-10-12", initialQty: 4, remainingQty: 1, costPrice: 110000, expiryDate: "2027-12-31", supplierId: "sup-1" }
+  { id: "btc-6", productId: "prd-8", batchNo: "BATCH-2026-005", dateIn: "2026-10-12", initialQty: 4, remainingQty: 1, costPrice: 110000, expiryDate: "2027-12-31", supplierId: "sup-1" },
+  { id: "btc-7", productId: "prd-11", batchNo: "BATCH-2026-011", dateIn: "2026-11-20", initialQty: 18, remainingQty: 18, costPrice: 52000, expiryDate: "2028-11-20", supplierId: "sup-2" },
+  { id: "btc-8", productId: "prd-12", batchNo: "BATCH-2026-012", dateIn: "2026-11-20", initialQty: 15, remainingQty: 15, costPrice: 55000, expiryDate: "2028-11-20", supplierId: "sup-2" },
+  { id: "btc-9", productId: "prd-13", batchNo: "BATCH-2026-013", dateIn: "2026-11-20", initialQty: 10, remainingQty: 10, costPrice: 98000, expiryDate: "2028-11-20", supplierId: "sup-3" },
+  { id: "btc-10", productId: "prd-14", batchNo: "BATCH-2026-014", dateIn: "2026-11-20", initialQty: 24, remainingQty: 24, costPrice: 28000, expiryDate: "2028-11-20", supplierId: "sup-1" },
+  { id: "btc-11", productId: "prd-15", batchNo: "BATCH-2026-015", dateIn: "2026-11-20", initialQty: 9, remainingQty: 9, costPrice: 72000, expiryDate: "2028-11-20", supplierId: "sup-3" },
+  { id: "btc-12", productId: "prd-16", batchNo: "BATCH-2026-016", dateIn: "2026-11-20", initialQty: 8, remainingQty: 8, costPrice: 82000, expiryDate: "2028-11-20", supplierId: "sup-2" }
 ];
 
 export const INITIAL_CUSTOMERS = [
@@ -783,7 +867,19 @@ export const INITIAL_WAREHOUSE_STOCK = [
   { id: "wst-15", warehouseId: "wh-main", productId: "prd-9", qty: 9 },
   { id: "wst-16", warehouseId: "wh-barber", productId: "prd-9", qty: 6 },
   { id: "wst-17", warehouseId: "wh-main", productId: "prd-10", qty: 2 },
-  { id: "wst-18", warehouseId: "wh-barber", productId: "prd-10", qty: 2 }
+  { id: "wst-18", warehouseId: "wh-barber", productId: "prd-10", qty: 2 },
+  { id: "wst-19", warehouseId: "wh-retail", productId: "prd-11", qty: 12 },
+  { id: "wst-20", warehouseId: "wh-main", productId: "prd-11", qty: 6 },
+  { id: "wst-21", warehouseId: "wh-retail", productId: "prd-12", qty: 10 },
+  { id: "wst-22", warehouseId: "wh-main", productId: "prd-12", qty: 5 },
+  { id: "wst-23", warehouseId: "wh-retail", productId: "prd-13", qty: 7 },
+  { id: "wst-24", warehouseId: "wh-main", productId: "prd-13", qty: 3 },
+  { id: "wst-25", warehouseId: "wh-retail", productId: "prd-14", qty: 18 },
+  { id: "wst-26", warehouseId: "wh-main", productId: "prd-14", qty: 6 },
+  { id: "wst-27", warehouseId: "wh-retail", productId: "prd-15", qty: 6 },
+  { id: "wst-28", warehouseId: "wh-main", productId: "prd-15", qty: 3 },
+  { id: "wst-29", warehouseId: "wh-retail", productId: "prd-16", qty: 5 },
+  { id: "wst-30", warehouseId: "wh-main", productId: "prd-16", qty: 3 }
 ];
 
 export const INITIAL_REQUISITIONS = [
