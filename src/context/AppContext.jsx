@@ -209,19 +209,32 @@ export const AppProvider = ({ children }) => {
 
   // 1. Operating Hours & Schedule Helpers
   const checkOperatingHours = (dateStr, timeStr) => {
-    // Salon buka setiap hari mulai Senin, 11:00 - 21:00 (last order 20:00)
+    // Senin: 11:00 - 16:00 (last order 15:00) · Selasa - Minggu: 11:00 - 21:00 (last order 20:00)
+    const day = new Date(dateStr).getDay(); // 0: Minggu, 1: Senin, ...
+    const isMonday = day === 1;
+
     const [h, m] = timeStr.split(':').map(Number);
     const timeInMins = h * 60 + m;
 
     const open = 11 * 60;
-    const close = 21 * 60;
-    const lastOrder = 20 * 60;
+    const close = isMonday ? 16 * 60 : 21 * 60;
+    const lastOrder = isMonday ? 15 * 60 : 20 * 60;
 
     if (timeInMins < open || timeInMins > close) {
-      return { valid: false, message: 'Jam operasional Senin-Minggu adalah 11:00 - 21:00 (Last order 20:00)' };
+      return {
+        valid: false,
+        message: isMonday
+          ? 'Hari Senin jam operasional adalah 11:00 - 16:00 (Last order 15:00)'
+          : 'Jam operasional Selasa-Minggu adalah 11:00 - 21:00 (Last order 20:00)',
+      };
     }
     if (timeInMins > lastOrder) {
-      return { valid: false, message: 'Last order untuk hari ini adalah pukul 20:00' };
+      return {
+        valid: false,
+        message: isMonday
+          ? 'Last order untuk hari Senin adalah pukul 15:00'
+          : 'Last order untuk hari ini adalah pukul 20:00',
+      };
     }
     return { valid: true };
   };
@@ -1114,7 +1127,12 @@ export const AppProvider = ({ children }) => {
   // Helper: check if a customer has birthday today or this month
   const getCustomerBirthdayStatus = (birthdayStr) => {
     if (!birthdayStr) return { isToday: false, isThisMonth: false };
-    const bday = new Date(birthdayStr);
+    // Parse YYYY-MM-DD as a local calendar date; Date(string) would shift the day in WIB.
+    const parts = String(birthdayStr).split('-').map(Number);
+    const bday = parts.length === 3 && parts.every(Number.isFinite)
+      ? new Date(parts[0], parts[1] - 1, parts[2])
+      : new Date(birthdayStr);
+    if (Number.isNaN(bday.getTime())) return { isToday: false, isThisMonth: false };
     const today = new Date();
     const isThisMonth = bday.getMonth() === today.getMonth();
     const isToday = isThisMonth && bday.getDate() === today.getDate();

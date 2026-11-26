@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   Clock,
   Sparkles,
-  Scissors,
   RotateCcw,
   BookOpen,
   LogOut,
@@ -70,9 +69,10 @@ export const Sidebar = ({ mobileOpen = false, onClose }) => {
   const now = new Date();
   const currentMins = now.getHours() * 60 + now.getMinutes();
 
+  const isMonday = now.getDay() === 1;
   const openMins = 11 * 60;
-  const closeMins = 21 * 60;
-  const lastOrderMins = 20 * 60;
+  const closeMins = isMonday ? 16 * 60 : 21 * 60;
+  const lastOrderMins = isMonday ? 15 * 60 : 20 * 60;
   const isOpen = currentMins >= openMins && currentMins <= closeMins;
   const isLastOrderTime = currentMins > lastOrderMins && isOpen;
 
@@ -100,8 +100,8 @@ export const Sidebar = ({ mobileOpen = false, onClose }) => {
         {/* Brand */}
         <div className="p-5 pb-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 flex items-center justify-center text-white shadow-glow-pink">
-              <Scissors className="w-5 h-5 stroke-[2.2]" />
+            <div className="w-11 h-11 rounded-2xl bg-charcoal-950 ring-1 ring-charcoal-800 shadow-sm p-0.5 overflow-hidden shrink-0">
+              <img src="/logo.png" alt="PU Salon & Barbershop" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 font-display font-extrabold text-[17px] tracking-tight text-charcoal-900">
@@ -131,7 +131,7 @@ export const Sidebar = ({ mobileOpen = false, onClose }) => {
             </span>
           </div>
           <p className="text-[10px] text-charcoal-500 leading-snug mt-1.5">
-            Senin — Minggu · 11:00 — 21:00
+            {isMonday ? 'Senin · 11:00 — 16:00' : 'Selasa — Minggu · 11:00 — 21:00'}
           </p>
         </div>
 

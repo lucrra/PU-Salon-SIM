@@ -1872,7 +1872,7 @@ export const SCMModule = () => {
                 value={warehouseForm.name}
                 onChange={(e) => setWarehouseForm({ ...warehouseForm, name: e.target.value })}
                 className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
-                placeholder="Gudang Cabang Kelapa Gading 2"
+                placeholder="Gudang Cabang Tembalang 2"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -2409,7 +2409,7 @@ export const SCMModule = () => {
             <div className="border-b-2 border-charcoal-900 pb-3 flex justify-between items-start">
               <div>
                 <h2 className="font-serif font-bold text-lg tracking-wide text-charcoal-900">{salonProfile?.name || 'PU SALON & BARBERSHOP'}</h2>
-                <p className="text-[10px] text-charcoal-500">{salonProfile?.address || 'Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading'}</p>
+                <p className="text-[10px] text-charcoal-500">{salonProfile?.address || 'Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275'}</p>
                 <p className="text-[10px] text-charcoal-500">Telp: {salonProfile?.phone || '0812-3456-7890'} • Enterprise ERP SIM</p>
               </div>
               <div className="text-right">

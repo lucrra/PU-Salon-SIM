@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  Scissors,
   Sparkles,
   Mail,
   Lock,
@@ -16,7 +15,7 @@ import {
 import { LOGIN_IMAGE } from '../../data/priceList';
 
 export const AuthModule = () => {
-  const { login, loginAs, demoAccounts } = useApp();
+  const { login, loginAs, demoAccounts, salonProfile } = useApp();
   const [email, setEmail] = useState('owner@pusalon.co.id');
   const [password, setPassword] = useState('demo123');
   const [showPassword, setShowPassword] = useState(false);
@@ -39,31 +38,31 @@ export const AuthModule = () => {
       {/* Left — visual */}
       <div className="relative hidden lg:block overflow-hidden">
         <img src={LOGIN_IMAGE} alt="PU Salon" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/85 via-charcoal-900/55 to-champagne-900/40" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,76,135,.35),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(79,140,255,.30),transparent_45%)]" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/80 via-charcoal-900/65 to-charcoal-950/50" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,76,135,.42),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(38,190,130,.34),transparent_45%)]" />
 
-        <div className="relative z-10 h-full flex flex-col justify-between p-12 text-white">
+        <div className="relative z-10 h-full flex flex-col justify-between p-12 text-white [text-shadow:0_3px_16px_rgba(0,0,0,0.9)]">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 flex items-center justify-center shadow-glow-pink">
-              <Scissors className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-charcoal-950 ring-1 ring-white/25 shadow-lg p-0.5 overflow-hidden">
+              <img src="/logo.png" alt="PU Salon & Barbershop" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
               <div className="font-display text-xl font-bold tracking-tight">PU SALON</div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-champagne-200">& Barbershop Studio</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-pink-200">& Barbershop Studio</div>
             </div>
           </div>
 
           <div className="max-w-md space-y-5">
-            <span className="chip bg-white/15 text-champagne-100 border border-white/20 backdrop-blur">
+            <span className="chip bg-charcoal-950/65 text-white border border-white/35 backdrop-blur">
               <Sparkles className="w-3.5 h-3.5" /> PU SALON MANAGEMENT SYSTEM
             </span>
             <h1 className="font-display text-4xl font-extrabold leading-tight">
-              Hari Baru,{' '}
-              <span className="bg-gradient-to-r from-champagne-200 via-gold-300 to-blue-200 bg-clip-text text-transparent">
-                Semangat Baru!
+              Satu Salon,{' '}
+              <span className="bg-gradient-to-r from-pink-200 via-pink-100 to-emerald-200 bg-clip-text text-transparent">
+                Semua Lebih Teratur.
               </span>
             </h1>
-            <p className="text-sm text-white/75 leading-relaxed">
+            <p className="text-sm text-white/90 leading-relaxed">
               Semua kebutuhan operasional — janji temu, pelanggan, layanan, kasir, stok, hingga laporan —
               dalam satu sistem yang mudah digunakan.
             </p>
@@ -74,18 +73,18 @@ export const AuthModule = () => {
                 { icon: ShieldCheck, top: '100%', bottom: 'Data tersimpan' },
                 { icon: Clock, top: '11—21', bottom: 'Jam operasional' },
               ].map((s, i) => (
-                <div key={i} className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur px-3 py-2.5">
-                  <s.icon className="w-4 h-4 text-champagne-200 mb-1.5" />
+                <div key={i} className="rounded-2xl bg-charcoal-950/60 border border-white/30 backdrop-blur px-3 py-2.5 shadow-lg">
+                  <s.icon className="w-4 h-4 text-pink-200 mb-1.5" />
                   <div className="text-base font-bold leading-none">{s.top}</div>
-                  <div className="text-[10px] text-white/60 mt-1">{s.bottom}</div>
+                  <div className="text-[10px] text-white/85 mt-1">{s.bottom}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-white/55">
+          <div className="flex items-center gap-2 text-[11px] text-white/85">
             <MapPin className="w-3.5 h-3.5" />
-            Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading, Jakarta
+            {salonProfile?.address || 'Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275'}
           </div>
         </div>
       </div>
@@ -94,8 +93,8 @@ export const AuthModule = () => {
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md animate-fadeUp">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 flex items-center justify-center text-white shadow-glow-pink">
-              <Scissors className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-charcoal-950 ring-1 ring-charcoal-800 shadow-sm p-0.5 overflow-hidden">
+              <img src="/logo.png" alt="PU Salon & Barbershop" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
               <div className="font-display font-bold text-lg text-charcoal-900">PU SALON</div>
