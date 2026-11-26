@@ -737,7 +737,7 @@ export const INITIAL_WAREHOUSES = [
     code: "GD-UTM",
     name: "Gudang Utama",
     type: "main",
-    address: "Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading",
+    address: "Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275",
     manager: "Budi Santoso",
     capacity: 120,
     status: "active"

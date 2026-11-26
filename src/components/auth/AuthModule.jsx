@@ -15,7 +15,7 @@ import {
 import { LOGIN_IMAGE } from '../../data/priceList';
 
 export const AuthModule = () => {
-  const { login, loginAs, demoAccounts } = useApp();
+  const { login, loginAs, demoAccounts, salonProfile } = useApp();
   const [email, setEmail] = useState('owner@pusalon.co.id');
   const [password, setPassword] = useState('demo123');
   const [showPassword, setShowPassword] = useState(false);
@@ -84,7 +84,7 @@ export const AuthModule = () => {
 
           <div className="flex items-center gap-2 text-[11px] text-white/85">
             <MapPin className="w-3.5 h-3.5" />
-            Jl. Boulevard Raya Blok PU No. 12, Kelapa Gading, Jakarta
+            {salonProfile?.address || 'Jl. Maera Sari No.11, Banjarsari, Kec. Tembalang, Kota Semarang, Jawa Tengah 50275'}
           </div>
         </div>
       </div>

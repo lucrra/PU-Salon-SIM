@@ -95,6 +95,22 @@ export const DashboardModule = () => {
   const slope = regDen === 0 ? 0 : regNum / regDen;
   const intercept = meanY - slope * meanX;
 
+  // Baseline dari hari-hari yang benar-benar ada transaksi (30 hari terakhir)
+  const activeDayTotals = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dStr = d.toISOString().slice(0, 10);
+    const total = transactions
+      .filter(t => t.date.startsWith(dStr))
+      .reduce((sum, t) => sum + t.total, 0);
+    if (total > 0) activeDayTotals.push(total);
+  }
+  const baselineDaily = activeDayTotals.length
+    ? Math.round(activeDayTotals.reduce((a, b) => a + b, 0) / activeDayTotals.length)
+    : 0;
+  const hasTrend = activeDayTotals.length >= 4;
+
   const forecastDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i + 1);
@@ -102,7 +118,9 @@ export const DashboardModule = () => {
       date: toLocalDateKey(d),
       label: days[d.getDay()],
       dayNum: d.getDate(),
-      total: Math.max(0, Math.round(intercept + slope * (nDays + i))),
+      total: hasTrend
+        ? Math.max(0, Math.round(intercept + slope * (nDays + i)))
+        : baselineDaily,
       isForecast: true
     };
   });
@@ -110,10 +128,15 @@ export const DashboardModule = () => {
   const chartSeries = [...chartDays, ...forecastDays];
   const maxChartRevenue = Math.max(...chartSeries.map(d => d.total), 500000);
   const predictedWeekly = forecastDays.reduce((sum, d) => sum + d.total, 0);
-  const growthPct = actualWeekly > 0 ? ((predictedWeekly - actualWeekly) / actualWeekly) * 100 : 0;
+  const predictedDaily = Math.round(predictedWeekly / 7);
+  const actualDailyAvg = Math.round(actualWeekly / 7);
+  const growthPct = hasTrend && actualDailyAvg > 0
+    ? ((predictedDaily - actualDailyAvg) / actualDailyAvg) * 100
+    : 0;
   const avgDaily = Math.round((actualWeekly + predictedWeekly) / 14);
-  const monthlyProjection = Math.round((predictedWeekly / 7) * 30);
-  const isGrowing = growthPct >= 0;
+  const monthlyProjection = Math.round(predictedDaily * 30);
+  const isGrowing = growthPct > 0.5;
+  const isFlat = Math.abs(growthPct) <= 0.5;
 
   const peakDay = chartDays.reduce((a, b) => (b.total > a.total ? b : a), chartDays[0]);
   const slowDay = chartDays.reduce((a, b) => (b.total < a.total ? b : a), chartDays[0]);
@@ -135,16 +158,32 @@ export const DashboardModule = () => {
     return entries.length ? { name: entries[0][0], revenue: entries[0][1] } : null;
   })();
 
+  const trendTitle = !hasTrend
+    ? `Estimasi harian ${formatIDR(predictedDaily)}`
+    : isGrowing
+      ? `Tren naik ${Math.abs(growthPct).toFixed(1)}% pekan depan`
+      : isFlat
+        ? 'Tren stabil pekan depan'
+        : `Tren turun ${Math.abs(growthPct).toFixed(1)}% pekan depan`;
+
   const recommendations = [
     {
-      icon: isGrowing ? TrendingUp : TrendingDown,
-      title: isGrowing
-        ? `Tren naik ${Math.abs(growthPct).toFixed(1)}% pekan depan`
-        : `Tren turun ${Math.abs(growthPct).toFixed(1)}% pekan depan`,
-      desc: isGrowing
-        ? 'Siapkan staf dan stok bahan ekstra di jam sibuk untuk menangkap lonjakan permintaan.'
-        : 'Aktifkan promo bundling dan broadcast WhatsApp untuk menahan penurunan omzet.',
-      tint: isGrowing ? 'from-emerald-500 to-teal-400' : 'from-rose-500 to-orange-400',
+      icon: !hasTrend ? Sparkles : isGrowing ? TrendingUp : isFlat ? Sparkles : TrendingDown,
+      title: trendTitle,
+      desc: !hasTrend
+        ? 'Data transaksi masih sedikit, prediksi memakai rata-rata hari aktif 30 hari terakhir.'
+        : isGrowing
+          ? 'Siapkan staf dan stok bahan ekstra di jam sibuk untuk menangkap lonjakan permintaan.'
+          : isFlat
+            ? 'Omzet cenderung stabil. Dorong upsell produk retail agar nilai transaksi naik.'
+            : 'Aktifkan promo bundling dan broadcast WhatsApp untuk menahan penurunan omzet.',
+      tint: !hasTrend
+        ? 'from-violet-500 to-blue-400'
+        : isGrowing
+          ? 'from-emerald-500 to-teal-400'
+          : isFlat
+            ? 'from-blue-500 to-violet-400'
+            : 'from-rose-500 to-orange-400',
       tab: isGrowing ? 'booking' : 'pos',
       cta: isGrowing ? 'Atur Jadwal' : 'Buka Kasir'
     },
@@ -449,9 +488,9 @@ export const DashboardModule = () => {
               <div className="surface-flat p-3">
                 <div className="text-[9px] font-bold uppercase tracking-wider text-charcoal-400">Prediksi 7 Hari</div>
                 <div className="font-display text-sm font-extrabold text-charcoal-900 mt-1">{formatIDR(predictedWeekly)}</div>
-                <span className={`chip mt-1.5 ${isGrowing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
-                  {isGrowing ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {growthPct >= 0 ? '+' : ''}{growthPct.toFixed(1)}%
+                <span className={`chip mt-1.5 ${isFlat ? 'bg-violet-50 text-violet-700 border border-violet-200' : isGrowing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
+                  {isFlat ? <Sparkles className="w-3 h-3" /> : isGrowing ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {isFlat ? 'Estimasi stabil' : `${growthPct >= 0 ? '+' : ''}${growthPct.toFixed(1)}%`}
                 </span>
               </div>
               <div className="surface-flat p-3">
@@ -481,9 +520,9 @@ export const DashboardModule = () => {
                   Dihitung otomatis dari tren 7 hari terakhir menggunakan regresi linear sederhana.
                 </p>
               </div>
-              <span className={`chip shrink-0 ${isGrowing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
-                {isGrowing ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                {isGrowing ? 'Prospek naik' : 'Perlu perhatian'}
+              <span className={`chip shrink-0 ${isFlat ? 'bg-violet-50 text-violet-700 border border-violet-200' : isGrowing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
+                {isFlat ? <Sparkles className="w-3.5 h-3.5" /> : isGrowing ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                {isFlat ? 'Estimasi stabil' : isGrowing ? 'Prospek naik' : 'Perlu perhatian'}
               </span>
             </div>
 
