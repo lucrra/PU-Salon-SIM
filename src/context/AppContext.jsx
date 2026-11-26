@@ -62,6 +62,15 @@ export const AppProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(() => loadState('role', 'owner'));
   const [activeStaffId, setActiveStaffId] = useState(() => loadState('activeStaffId', 'stf-1'));
 
+  // Profil Owner — dapat diubah sendiri oleh akun Owner
+  const [ownerProfile, setOwnerProfile] = useState(() => loadState('ownerProfile', {
+    name: 'Yuni Puspita',
+    email: 'owner@pusalon.co.id',
+    phone: '0812-3456-7890',
+    label: 'Owner / Pemilik',
+    avatar: ''
+  }));
+
   // Autentikasi (simulasi JWT login)
   const [isAuthenticated, setIsAuthenticated] = useState(() => loadState('authenticated', false));
   const [currentUser, setCurrentUser] = useState(() => loadState('currentUser', null));
@@ -109,6 +118,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('pu_salon_activeStaffId', JSON.stringify(activeStaffId)); }, [activeStaffId]);
   useEffect(() => { localStorage.setItem('pu_salon_authenticated', JSON.stringify(isAuthenticated)); }, [isAuthenticated]);
   useEffect(() => { localStorage.setItem('pu_salon_currentUser', JSON.stringify(currentUser)); }, [currentUser]);
+  useEffect(() => { localStorage.setItem('pu_salon_ownerProfile', JSON.stringify(ownerProfile)); }, [ownerProfile]);
 
   // Autentikasi — login/logout simulasi (JWT-style session)
   const demoAccounts = [
@@ -124,17 +134,35 @@ export const AppProvider = ({ children }) => {
     }
     setUserRole(account.role);
     if (account.role === 'staff') setActiveStaffId('stf-1');
+    const profile = account.role === 'owner'
+      ? {
+          name: ownerProfile.name || account.name,
+          email: ownerProfile.email || account.email,
+          phone: ownerProfile.phone || '',
+          avatar: ownerProfile.avatar || '',
+          label: ownerProfile.label || account.label
+        }
+      : { name: account.name, email: account.email, phone: '', avatar: '', label: account.label };
     setCurrentUser({
-      name: account.name,
-      email: account.email,
+      ...profile,
       role: account.role,
-      label: account.label,
       token: `jwt.${btoa(`${account.email}:${Date.now()}`).replace(/=/g, '')}.demo`,
       loginAt: new Date().toISOString()
     });
     setIsAuthenticated(true);
-    showToast('success', 'Login Berhasil', `Selamat datang kembali, ${account.name}!`);
+    showToast('success', 'Login Berhasil', `Selamat datang kembali, ${profile.name}!`);
     return { success: true, account };
+  };
+
+  // Owner: perbarui profil akun sendiri (nama, foto, kontak, jabatan)
+  const updateOwnerProfile = (updates) => {
+    const next = { ...ownerProfile, ...updates };
+    setOwnerProfile(next);
+    setCurrentUser(prev => prev && prev.role === 'owner'
+      ? { ...prev, name: next.name, email: next.email, phone: next.phone, avatar: next.avatar, label: next.label }
+      : prev
+    );
+    showToast('success', 'Profil Owner Diperbarui', `Nama tampilan kini: ${next.name}.`);
   };
 
   const loginAs = (roleId) => {
@@ -152,6 +180,13 @@ export const AppProvider = ({ children }) => {
   // Reset to demo data
   const resetAllData = () => {
     setStaff(INITIAL_STAFF);
+    setOwnerProfile({
+      name: 'Yuni Puspita',
+      email: 'owner@pusalon.co.id',
+      phone: '0812-3456-7890',
+      label: 'Owner / Pemilik',
+      avatar: ''
+    });
     setServices(INITIAL_SERVICES);
     setProducts(INITIAL_PRODUCTS);
     setBatches(INITIAL_BATCHES);
@@ -1121,6 +1156,8 @@ export const AppProvider = ({ children }) => {
         setActiveStaffId,
         isAuthenticated,
         currentUser,
+        ownerProfile,
+        updateOwnerProfile,
         demoAccounts,
         login,
         loginAs,

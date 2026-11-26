@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import {
   ShieldCheck,
@@ -52,6 +53,8 @@ export const UserManagementModule = () => {
     staff,
     setStaff,
     updateStaff,
+    ownerProfile,
+    updateOwnerProfile,
     userRole,
     showToast
   } = useApp();
@@ -70,6 +73,50 @@ export const UserManagementModule = () => {
     commissionRate: 15,
     status: 'available'
   });
+
+  const [isOwnerModalOpen, setIsOwnerModalOpen] = useState(false);
+  const [ownerFormData, setOwnerFormData] = useState({
+    name: '',
+    label: '',
+    phone: '',
+    email: '',
+    avatar: ''
+  });
+
+  const openOwnerModal = () => {
+    if (!isOwner) {
+      showToast('error', 'Akses Ditolak', 'Hanya Owner yang dapat mengubah profil ini.');
+      return;
+    }
+    setOwnerFormData({
+      name: ownerProfile?.name || '',
+      label: ownerProfile?.label || 'Owner / Pemilik',
+      phone: ownerProfile?.phone || '',
+      email: ownerProfile?.email || '',
+      avatar: ownerProfile?.avatar || ''
+    });
+    setIsOwnerModalOpen(true);
+  };
+
+  const handleSaveOwner = (e) => {
+    e.preventDefault();
+    if (!isOwner) return;
+
+    const name = ownerFormData.name.trim();
+    if (!name) {
+      showToast('error', 'Nama Wajib Diisi', 'Nama profil Owner tidak boleh kosong.');
+      return;
+    }
+
+    updateOwnerProfile({
+      name,
+      label: ownerFormData.label.trim() || 'Owner / Pemilik',
+      phone: ownerFormData.phone.trim(),
+      email: ownerFormData.email.trim(),
+      avatar: ownerFormData.avatar.trim()
+    });
+    setIsOwnerModalOpen(false);
+  };
 
   const openEditModal = (s) => {
     if (!isOwner) {
@@ -138,6 +185,48 @@ export const UserManagementModule = () => {
 
   return (
     <div className="space-y-6">
+      {/* Profil Owner — akun sendiri */}
+      {isOwner && (
+        <div className="bg-gradient-to-r from-champagne-50 via-white to-blue-50 rounded-3xl border border-champagne-200/80 shadow-soft p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <StaffAvatar
+            key={`owner-${ownerProfile?.avatar || 'initials'}`}
+            staff={{ name: ownerProfile?.name, avatar: ownerProfile?.avatar }}
+            className="w-16 h-16 rounded-2xl border-2 border-champagne-400 shadow-sm shrink-0"
+            textClassName="text-xl"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-serif font-bold text-lg text-charcoal-900 leading-tight break-words">
+                {ownerProfile?.name || 'Owner'}
+              </h3>
+              <span className="chip bg-champagne-100 text-champagne-800 border border-champagne-200">
+                <ShieldCheck className="w-3 h-3" /> Akun Anda
+              </span>
+            </div>
+            <div className="text-xs font-semibold text-champagne-800 mt-0.5">
+              {ownerProfile?.label || 'Owner / Pemilik'}
+            </div>
+            <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-charcoal-500">
+              <span className="inline-flex items-center gap-1.5">
+                <Phone className="w-3 h-3 text-charcoal-300" />
+                {ownerProfile?.phone || 'Nomor belum diisi'}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Mail className="w-3 h-3 text-charcoal-300" />
+                {ownerProfile?.email || 'Email belum diisi'}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={openOwnerModal}
+            className="btn-brand shrink-0 self-start sm:self-center"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            <span>Edit Profil Saya</span>
+          </button>
+        </div>
+      )}
+
       {/* Staff Profile Cards */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -354,7 +443,7 @@ export const UserManagementModule = () => {
       </div>
 
       {/* Edit Staff Modal — Owner only */}
-      {isEditModalOpen && (
+      {isEditModalOpen && createPortal(
         <div className="fixed inset-0 bg-charcoal-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-luxury border border-ivory-300 p-6 space-y-4 max-h-[95vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-ivory-200">
@@ -519,7 +608,140 @@ export const UserManagementModule = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Edit Profil Owner Modal — akun sendiri */}
+      {isOwnerModalOpen && createPortal(
+        <div className="fixed inset-0 bg-charcoal-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-luxury border border-ivory-300 p-6 space-y-4 max-h-[95vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-ivory-200">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal-900">Edit Profil Saya</h3>
+                <p className="text-[10px] text-charcoal-400">
+                  Nama dan foto ini tampil di header, dashboard, dan seluruh modul.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsOwnerModalOpen(false)}
+                className="text-charcoal-400 hover:text-charcoal-700 p-1"
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveOwner} className="space-y-3 text-xs">
+              <div className="p-3 rounded-2xl bg-ivory-50 border border-ivory-200 flex items-center gap-3">
+                <StaffAvatar
+                  key={ownerFormData.avatar || 'owner-empty'}
+                  staff={{ name: ownerFormData.name || ownerProfile?.name, avatar: ownerFormData.avatar }}
+                  className="w-16 h-16 rounded-2xl border-2 border-champagne-300 shadow-sm shrink-0"
+                  textClassName="text-xl"
+                />
+                <div className="flex-1 min-w-0">
+                  <label className="block font-bold text-charcoal-700 mb-1 flex items-center gap-1">
+                    <ImageIcon className="w-3.5 h-3.5 text-champagne-600" />
+                    <span>URL Foto Profil</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={ownerFormData.avatar}
+                    onChange={(e) => setOwnerFormData(prev => ({ ...prev, avatar: e.target.value }))}
+                    placeholder="https://contoh.com/foto-owner.jpg"
+                    className="w-full px-3 py-2 bg-white border border-ivory-300 rounded-xl"
+                  />
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <span className="text-[10px] text-charcoal-400 flex items-center gap-1">
+                      <Camera className="w-3 h-3" /> Kosongkan untuk memakai inisial nama.
+                    </span>
+                    {ownerFormData.avatar && (
+                      <button
+                        type="button"
+                        onClick={() => setOwnerFormData(prev => ({ ...prev, avatar: '' }))}
+                        className="text-[10px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 shrink-0"
+                      >
+                        <Trash2 className="w-3 h-3" /> Hapus
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal-700 mb-1">Nama Profil / Nama Lengkap *</label>
+                <input
+                  type="text"
+                  required
+                  value={ownerFormData.name}
+                  onChange={(e) => setOwnerFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Contoh: Yuni Puspita"
+                  className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal-700 mb-1">Jabatan / Label Profil</label>
+                <input
+                  type="text"
+                  value={ownerFormData.label}
+                  onChange={(e) => setOwnerFormData(prev => ({ ...prev, label: e.target.value }))}
+                  placeholder="Contoh: Owner / Pemilik"
+                  className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1">No. WhatsApp / HP</label>
+                  <input
+                    type="text"
+                    value={ownerFormData.phone}
+                    onChange={(e) => setOwnerFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="0812-xxxx-xxxx"
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal-700 mb-1 flex items-center gap-1">
+                    <Mail className="w-3.5 h-3.5 text-champagne-600" />
+                    <span>Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={ownerFormData.email}
+                    onChange={(e) => setOwnerFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="nama@pusalon.co.id"
+                    className="w-full px-3 py-2 bg-ivory-100 border border-ivory-300 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-800 flex items-start gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>Perubahan langsung memperbarui identitas akun Owner di seluruh sistem.</span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-ivory-200">
+                <button
+                  type="button"
+                  onClick={() => setIsOwnerModalOpen(false)}
+                  className="px-4 py-2 font-semibold text-charcoal-500 hover:text-charcoal-700"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-champagne-500 hover:bg-champagne-400 text-charcoal-900 font-bold rounded-xl shadow-gold"
+                >
+                  Simpan Profil
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

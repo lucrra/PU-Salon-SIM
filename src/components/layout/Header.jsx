@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   Bell,
@@ -12,7 +12,8 @@ import {
   Menu,
   Sparkles,
   Shield,
-  BookOpen
+  BookOpen,
+  Edit2
 } from 'lucide-react';
 
 export const Header = ({ onOpenMenu }) => {
@@ -31,6 +32,9 @@ export const Header = ({ onOpenMenu }) => {
 
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
+
+  useEffect(() => { setAvatarFailed(false); }, [currentUser?.avatar]);
 
   const tabTitles = {
     dashboard: { title: 'Dashboard', subtitle: 'Ringkasan performa bisnis, pendapatan, dan aktivitas hari ini' },
@@ -173,9 +177,19 @@ export const Header = ({ onOpenMenu }) => {
               onClick={() => { setShowProfile(v => !v); setShowNotifMenu(false); }}
               className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 bg-white/85 border border-ivory-300 hover:border-champagne-300 rounded-2xl transition"
             >
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
-                {initials}
-              </div>
+              {currentUser?.avatar && !avatarFailed ? (
+                <img
+                  key={currentUser.avatar}
+                  src={currentUser.avatar}
+                  alt={displayName}
+                  onError={() => setAvatarFailed(true)}
+                  className="w-8 h-8 rounded-xl object-cover border border-ivory-300 shadow-sm"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-champagne-500 via-gold-500 to-blue-500 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+                  {initials}
+                </div>
+              )}
               <div className="text-left hidden sm:block max-w-[110px]">
                 <div className="text-[11px] font-bold text-charcoal-800 truncate">{displayName}</div>
                 <p className="text-[9px] text-charcoal-400 capitalize truncate">{currentUser?.label || userRole}</p>
@@ -197,6 +211,14 @@ export const Header = ({ onOpenMenu }) => {
                     </span>
                   </div>
                 </div>
+                {userRole === 'owner' && (
+                  <button
+                    onClick={() => { setShowProfile(false); setActiveTab('users'); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-charcoal-600 hover:bg-ivory-100"
+                  >
+                    <Edit2 className="w-4 h-4 text-champagne-500" /> Edit Profil Saya
+                  </button>
+                )}
                 <button
                   onClick={() => { setShowProfile(false); setActiveTab('pricelist'); }}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-charcoal-600 hover:bg-ivory-100"
