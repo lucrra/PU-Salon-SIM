@@ -454,12 +454,12 @@ export const DashboardModule = () => {
                 return (
                   <div
                     key={`${item.date}-${idx}`}
-                    className={`flex-1 flex flex-col items-center gap-1.5 group relative ${isFirstForecast ? 'ml-1.5 pl-1.5 border-l border-dashed border-violet-300' : ''}`}
+                    className={`flex-1 h-full flex flex-col items-center gap-1.5 group relative ${isFirstForecast ? 'ml-1.5 pl-1.5 border-l border-dashed border-violet-300' : ''}`}
                   >
                     <div className="absolute -top-9 opacity-0 group-hover:opacity-100 transition-opacity bg-charcoal-900 text-white text-[10px] font-bold py-1 px-2 rounded-lg pointer-events-none whitespace-nowrap shadow-lg z-20">
                       {isForecast ? 'Prediksi · ' : ''}{formatIDR(item.total)}
                     </div>
-                    <div className={`w-full h-full flex items-end rounded-t-xl overflow-hidden ${isForecast ? 'bg-violet-50' : 'bg-ivory-100'}`}>
+                    <div className={`w-full flex-1 min-h-0 flex items-end rounded-t-xl overflow-hidden ${isForecast ? 'bg-violet-50' : 'bg-ivory-100'}`}>
                       <div
                         className={`w-full rounded-t-xl transition-all duration-500 group-hover:brightness-110 ${
                           isToday
